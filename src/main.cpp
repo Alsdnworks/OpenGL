@@ -5,7 +5,7 @@
 //윈도우 크기가 변경되면 로그를 표시해주는 함수
 void OnFramebufferSizeChange(GLFWwindow* window, int width, int height) {
     SPDLOG_INFO("framebuffer size changed: ({} x {})", width, height);
-    //glViewport(xy좌표,크기지정)
+    //glViewport를 지정하는 부분(xy좌표,크기지정)
     glViewport(0, 0, width, height);
 }
 
@@ -29,7 +29,7 @@ int main(int argc, const char** argv) {
     // 시작을 알리는 로그
     SPDLOG_INFO("Start program");
 
-    // glfw 라이브러리 초기화, 실패하면 에러 출력후 종료
+    // glfw 라이브러리 초기화, 실패하면 에러 출력후 종료 에러코드는 -1
     SPDLOG_INFO("Initialize glfw");
     if (!glfwInit()) {
         const char* description = nullptr;
@@ -38,7 +38,7 @@ int main(int argc, const char** argv) {
         return -1;
     }
 
-    //윈도우 컨택스트버전을 명시
+    //window의 opengl contextversion을 명시 에러코드는 -1
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -53,18 +53,18 @@ int main(int argc, const char** argv) {
         return -1;
     }
 
-
+//앞으로auto window=glfwCreateWindow에서 생성된 opengl context를 사용합니다.
         glfwMakeContextCurrent(window);
 
 
-    // glad를 활용한 OpenGL 함수 로딩
+    // glad를 활용한 OpenGL 함수 로딩 실패시 에러코드는 -1
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
      SPDLOG_ERROR("failed to initialize glad");
      glfwTerminate();
      return -1;
     }
-    //43 glgetstring 기본 함수를 로드한다
-    //44 opengl context 버전 표시
+    //glgetstring 기본 함수를 로드한다
+    //opengl context 버전 표시
     auto glVersion = glGetString(GL_VERSION);
     SPDLOG_INFO("OpenGL context version: {}", glVersion);
 
@@ -78,7 +78,7 @@ int main(int argc, const char** argv) {
 
      // glfw 루프 실행, 윈도우 close 버튼을 누르면 정상 종료
     SPDLOG_INFO("Start main loop");
-    // while~ 창이 닫힌다가 부정(즉 열려있는동안)
+    // while~ 창이 닫힌다가 부정인동안(즉 열려있는동안)
     while (!glfwWindowShouldClose(window)) {
    //이벤트를 수집한다
         glfwPollEvents();
@@ -92,7 +92,7 @@ int main(int argc, const char** argv) {
         //프론트버퍼와 스왑해준다.(밑의 3줄) 이는 부드러운 화면전환이 가능하게해준다.
         glfwSwapBuffers(window);
     }
-
+    //gl종료후 리턴0
     glfwTerminate();
     return 0;
 } 
