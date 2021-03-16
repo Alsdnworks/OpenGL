@@ -7,6 +7,16 @@
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 #include <spdlog/spdlog.h>
+
+// 메크로functon을 다음줄로 넘길때 이거필요함'\'//
+//'##' 앞단어 뒷단어를 붙인다.
+//'using' klassnameUPtr은 stf::~과 같다
+#define CLASS_PTR(klassName) \
+class klassName; \
+using klassName ## UPtr = std::unique_ptr<klassName>; \
+using klassName ## Ptr = std::shared_ptr<klassName>; \
+using klassName ## WPtr = std::weak_ptr<klassName>;
+
      //어떤값이있거나 없는가를 포인터없이 표시가능
      //std::string*로 리턴할시 빈파일이면 널포인터를 반환한다.
      //다만 동작할당과 반환이 귀찮아지므로 이런타입을 사용

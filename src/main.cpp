@@ -1,3 +1,4 @@
+#include "context.h"
 #include <spdlog/spdlog.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -38,6 +39,7 @@ int main(int argc, const char** argv) {
     }
 
     //window의 opengl contextversion을 명시 에러코드는 -1
+    //코어프로파일
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -66,6 +68,12 @@ int main(int argc, const char** argv) {
     //opengl context 버전 표시
     auto glVersion = glGetString(GL_VERSION);
     SPDLOG_INFO("OpenGL context version: {}", glVersion);
+    //컨텍스트를 이용한 초기화
+    auto context = Context::Create();
+    if(!context){
+        SPDLOG_ERROR("failed to create context");
+        return -1;
+    }
 
     //이벤트 처리단
     //윈도우가 처음생성되었을때 아래줄코드(사이즈표시)를 실행해주는부분
@@ -81,16 +89,14 @@ int main(int argc, const char** argv) {
     while (!glfwWindowShouldClose(window)) {
    //이벤트를 수집한다
         glfwPollEvents();
-        
-        //glClearColor()컬러프레임버퍼화면 클리어할 색상지정, 즉 초기화색
-        glClearColor(0.2f,0.4f,0.7f,0.1f);
-        //glClear()프레임버퍼클리어
-        //GL_COLOR_BUFFER_BIT 화면에 보이는 색상버퍼
-        glClear(GL_COLOR_BUFFER_BIT);
+        context->Render();
         //프레임버퍼는 2개 화면을 확장하면 백버퍼에 그림을 그리고 준비가되면
         //프론트버퍼와 스왑해준다.(밑의 3줄) 이는 부드러운 화면전환이 가능하게해준다.
         glfwSwapBuffers(window);
     }
+    //컨텍스트 사용후 초기화, 아님 컨텍스트에 널포인트를 넣어 소유권해제
+    //context=nullptr;
+    context.reset();
     //gl종료후 리턴0
     glfwTerminate();
     return 0;
