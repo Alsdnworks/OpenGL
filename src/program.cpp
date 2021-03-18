@@ -37,4 +37,9 @@ bool Program::Link(const std::vector<ShaderPtr>& shaders){
         return false;
          }
     return true;
-}    
+}
+
+void Program::Use() const{
+    glUseProgram(m_program);
+
+}

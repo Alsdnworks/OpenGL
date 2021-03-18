@@ -13,9 +13,11 @@ public:
         //다른 program을만들때 사용하기위해 유니크가아닌 셰어드포인트ShaderPtr사용
         //벡터...?
         const std::vector<ShaderPtr>& shaders);
-
     ~Program();
-    uint32_t Get() const { return m_program; }    
+    uint32_t Get() const { return m_program;} 
+    void Use() const;
+   
+
 private:
     Program() {}
     bool Link(
