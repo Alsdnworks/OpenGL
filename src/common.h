@@ -8,7 +8,7 @@
 #include <glfw/glfw3.h>
 #include <spdlog/spdlog.h>
 
-// 메크로functon을 다음줄로 넘길때 이거필요함'\'//
+// 메크로functon을 다음줄로 넘길때 이거필요함'\'
 //'##' 앞단어 뒷단어를 붙인다.
 //'using' klassnameUPtr은 stf::~과 같다
 #define CLASS_PTR(klassName) \

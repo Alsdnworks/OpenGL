@@ -2,12 +2,13 @@
 #define __SHADER_H__
 
 #include "common.h"
-
+//클래스의 주소를 나타내는 포인터
 CLASS_PTR(Shader);
 class Shader {
 public:
  //셰이더를만들기위해shaderUPtr CreateFromFile만을 사용하게했다.
  //중복오류를 막기위해
+ //정적변수 클래스를 쓰는 모든게 공유하는
   static ShaderUPtr CreateFromFile(const std::string& filename, GLenum shaderType);
 
   ~Shader();

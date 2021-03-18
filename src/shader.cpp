@@ -1,8 +1,6 @@
 #include "shader.h"
 
-ShaderUPtr Shader::CreateFromFile(const std::string& filename,
-/**/
- GLenum shaderType) {
+ShaderUPtr Shader::CreateFromFile(const std::string& filename, GLenum shaderType) {
   auto shader = std::unique_ptr<Shader>(new Shader());
   //셰이더로드실패로 loadfile이 bool타입의 null포인터를 리턴하면 shader는 삭제됨
   //성공하면 다음 클래스인 shader로 이동함
