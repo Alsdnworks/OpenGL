@@ -10,8 +10,7 @@ void OnFramebufferSizeChange(GLFWwindow* window, int width, int height) {
 }
 
 //키로그를 찍는코드와 key == GLFW_KEY_ESCAPE(이에스시)가 눌리면 종료를 구현하는함수 
-void OnKeyEvent(GLFWwindow* window,
-    int key, int scancode, int action, int mods) {
+void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) {
     SPDLOG_INFO("key: {}, scancode: {}, action: {}, mods: {}{}{}",
         key, scancode,
         action == GLFW_PRESS ? "Pressed" :
