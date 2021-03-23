@@ -18,12 +18,14 @@ ContextUPtr Context::Create(){
     
 bool Context::init() {
     //4-5강 3개 버텍스의 위치를 선언
+	
 float vertices[] = {
-  0.5f, 0.5f, 0.0f, // top right 0
-  0.5f, -0.5f, 0.0f, // bottom right 1
-  -0.5f, -0.5f, 0.0f, // bottom left 2
-  -0.5f, 0.5f, 0.0f, // top left 3
+     0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right, red
+     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right, green
+     -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left, blue
+     -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, // top left, yellow
 };
+ 
 //점의 인덱스만으로 삼각형을 만듦을 표시하기위한 어레이
 //인덱스의 정수값을저장할 버퍼를 만들어야한다
 uint32_t indices[] = { // note that we start from 0!
@@ -38,7 +40,7 @@ uint32_t indices[] = { // note that we start from 0!
     glBindVertexArray(m_vertexArrayObject);*/
     //자세한설명https://rinthel.github.io/opengl_course/04_graphics_pipeline_and_shader_02#/7
     //버텍스버퍼 생성 및 바인딩 -아래주석코드는 리팩토링전 사용
-    m_vertexBuffer=Buffer::CreateWithData(GL_ARRAY_BUFFER,GL_STATIC_DRAW,vertices,sizeof(float)*12);
+    m_vertexBuffer=Buffer::CreateWithData(GL_ARRAY_BUFFER,GL_STATIC_DRAW,vertices,sizeof(float)*24);
    /* glGenBuffers(1, &m_vertexBuffer);
              //GL_ARRAY_BUFFER;버텍스버퍼오브젝트지정: 위의 포인터 는 버텍스의 배열 정보가 들어가는 공간이라는뜻
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
@@ -50,7 +52,10 @@ uint32_t indices[] = { // note that we start from 0!
     //4-5강 17:00
 //버텍스의 0번째 어트리뷰트, 어트리뷰트는 3개의값으로, float데이터타입, flase노멀라이즈여부, 
 //sizeof(float)*3정점간간격,0 첫절점의해당 어트리뷰트까지 간격
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+   // m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+   //5-1 45:00참조
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
+    m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, sizeof(float) * 3);
 //참고 VAO바인딩-> VBO바인딩-> 버텍스어트리뷰트세팅순으로 진행 
 	//이밑에 VBO/EBO
     //정수를 쓸거라 어트리뷰트어레이를 쓰지않는다.
@@ -62,8 +67,8 @@ uint32_t indices[] = { // note that we start from 0!
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * 6,
          indices, GL_STATIC_DRAW);*/
   //원래 auto로 명시된 유니킆인터를 세어드로 바꿔주었다 3/16
-    ShaderPtr vertShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
+    ShaderPtr vertShader = Shader::CreateFromFile("./shader/per_vertex_color.vs", GL_VERTEX_SHADER);
+    ShaderPtr fragShader = Shader::CreateFromFile("./shader/per_vertex_color.fs", GL_FRAGMENT_SHADER);
    //위에서 널포인터가 하나라도 들어오면 if구문작동 보호코드
     if(!vertShader || !fragShader)
         return false;
@@ -74,6 +79,15 @@ uint32_t indices[] = { // note that we start from 0!
     if(!m_program)
         return false;
     SPDLOG_INFO("Program id:{}",m_program->Get());
+
+    //프로그램ID세팅, 컬러이름의 변수를 호출(int값)
+    auto loc = glGetUniformLocation(m_program->Get(), "color");
+    //프로그램사용콜
+    m_program->Use();
+    //플로팅4개(오픈지엘 작명법 갯수,인자형식)
+    //컬러변수가있는곳(simple.fs)에 1 1 0 1을 넣어준다 rgbw 사용
+    glUniform4f(loc, 1.0f, 1.0f, 0.0f, 1.0f);
+
     //glClearColor()컬러프레임버퍼화면 클리어할 색상지정, 즉 초기화색
     glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 
