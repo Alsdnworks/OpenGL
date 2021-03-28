@@ -27,23 +27,18 @@ bool Shader::LoadFile(const std::string& filename, GLenum shaderType) {
   int32_t codeLength = (int32_t)code.length();
 
   // create and compile shader
-//셰이더를 하나 생성한다. 셰이더 멤버변수에 저장한다.
-//(셰이더.h의 32번째줄)
+
 m_shader = glCreateShader(shaderType);
-//로딩한 코드를 1개입력, 그 포인터는 ptr lenght배열에 저장됨
 glShaderSource(m_shader, 1, (const GLchar* const*)&codePtr, &codeLength);
-//컴파일호출, 맙소사 드디어..
+//컴파일호출
 glCompileShader(m_shader);
 
   // check compile error
   int success = 0;
   //shader'iv'인티져,벡터(포인터)->포인터로 형식으로 인티져를
-  //쉐이더의 정보를 얻어와요 컴파일상태를
   glGetShaderiv(m_shader, GL_COMPILE_STATUS, &success);
   if (!success) {
-      //얻어올버퍼크기
     char infoLog[1024];
-    //에러의 내용
     glGetShaderInfoLog(m_shader, 1024, nullptr, infoLog);
     SPDLOG_ERROR("failed to compile shader: \"{}\"", filename);
     SPDLOG_ERROR("reason: {}", infoLog);

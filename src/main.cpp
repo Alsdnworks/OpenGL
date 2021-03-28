@@ -28,6 +28,20 @@ void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
 int main(int argc, const char** argv) {
     // 시작을 알리는 로그
     SPDLOG_INFO("Start program");
+    SPDLOG_INFO("arg count:{}",argc);
+    for(int i=0; i<argc; i++){
+        SPDLOG_INFO("argv[{}]:{}", i, argv[i]);
+    }
+//3/24 원만들기
+    float CircleRadius=0.75f;
+    int CircleSegmentCount=128;
+    if(argc>=2)
+    {
+        CircleRadius = std::stof(argv[1]);
+    }
+    if(argc>=3){
+        CircleSegmentCount=std::stoi(argv[2]);
+    }
 
     // glfw 라이브러리 초기화, 실패하면 에러 출력후 종료 에러코드는 -1
     SPDLOG_INFO("Initialize glfw");
@@ -50,7 +64,6 @@ int main(int argc, const char** argv) {
       nullptr, nullptr);
     if (!window) {
         SPDLOG_ERROR("failed to create glfw window");
-        glfwTerminate();
         return -1;
     }
 
@@ -72,9 +85,10 @@ int main(int argc, const char** argv) {
     auto context = Context::Create();
     if(!context){
         SPDLOG_ERROR("failed to create context");
+        glfwTerminate();
         return -1;
     }
-
+    context->CreateCircle(CircleRadius, CircleSegmentCount);
     //이벤트 처리단
     //윈도우가 처음생성되었을때 아래줄코드(사이즈표시)를 실행해주는부분
     OnFramebufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
