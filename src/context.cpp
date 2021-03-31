@@ -1,4 +1,5 @@
 #include "context.h"
+#include <iostream>
 
 ContextUPtr Context::Create() {
     auto context = ContextUPtr(new Context());
@@ -9,13 +10,13 @@ ContextUPtr Context::Create() {
 
 
 
+
 void Context::Render() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     m_program->Use();
-    glDrawElements(GL_TRIANGLES, m_IndexCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINE_STRIP, m_IndexCount, GL_UNSIGNED_INT, 0);
 }
-
 
 
 bool Context::Init() {
@@ -59,31 +60,38 @@ bool Context::Init() {
     return true;
 }
 
-
-void Context::CreateCircle(float radius, int segment){
+void Context::CreateCircle(float radius,float s_radius, int segment, int a_userang,int b_userang){
+    std::vector<float> b_vertices;
+    std::vector<float> a_vertices;
     std::vector<float> vertices;
     std::vector<uint32_t> indices; 
     
-    vertices.push_back(0.0f);
-    vertices.push_back(0.0f);
-    vertices.push_back(0.0f);
-
-    const float pi =3.141592f;
+   
+    int count=0;
+    const float pi =3.14;
+           vertices.push_back(0);
+       vertices.push_back(0);
+       vertices.push_back(0);
     for(int i=0; i<segment; i++){
-       float angle = (360.f/segment*i)*pi/180.0f;
+       count++;
+       float angle = (360.0f/segment*i)*pi/180.0f;
        float x =cosf(angle)*radius;
-       float y =sinf(angle)*radius;
+       float y =sinf(angle)*(radius);
+       float m_x =cosf(angle)*(radius/s_radius);
+       float m_y =sinf(angle)*(radius/s_radius);
+
+       
+       vertices.push_back(m_x);
+       vertices.push_back(m_y);
+       vertices.push_back(0);
        vertices.push_back(x);
        vertices.push_back(y);
-       vertices.push_back(0.0f);
+       vertices.push_back(0);
     }
-        for(int i = 0; i < segment; i++){
-            indices.push_back(0);
-            indices.push_back(i + 1);
-            if(i == segment - 1)
-                indices.push_back(1);
-            else
-                indices.push_back(i + 2);
+        for(int i = a_userang; i < b_userang; i++){
+            indices.push_back(a_userang+(i-a_userang)%segment);
+            indices.push_back(a_userang+(i-a_userang)%segment+1);
+            indices.push_back(a_userang+(i-a_userang)%segment+2);
         }
 
 
@@ -93,9 +101,17 @@ void Context::CreateCircle(float radius, int segment){
 
     m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
 
+
     m_indexBuffer = Buffer::CreateWithData(
         GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size()); 
         m_IndexCount = (int)indices.size();
+        
+        for (int i = 0; i < indices.size(); ++i) {
+    std::cout << indices[i] << std::endl;
+}
+      for (int i = 0; i < vertices.size(); ++i) {
+    std::cout << vertices[i] << std::endl;
+}
 
     auto loc = glGetUniformLocation(m_program->Get(),"color");
     m_program->Use();

@@ -34,13 +34,25 @@ int main(int argc, const char** argv) {
     }
 //3/24 원만들기
     float CircleRadius=0.75f;
-    int CircleSegmentCount=128;
+    float circleradius=0.5f;
+    int CircleSegmentCount=360;
+    int a_userang=45;
+    int b_userang=360;
     if(argc>=2)
     {
         CircleRadius = std::stof(argv[1]);
     }
     if(argc>=3){
-        CircleSegmentCount=std::stoi(argv[2]);
+        circleradius=std::stof(argv[2]);
+    }
+      if(argc>=4){
+        CircleSegmentCount=std::stoi(argv[3]);
+    }
+      if(argc>=5){
+        a_userang=std::stoi(argv[4]);
+    }
+    if(argc>=6){
+        b_userang=std::stoi(argv[5]);
     }
 
     // glfw 라이브러리 초기화, 실패하면 에러 출력후 종료 에러코드는 -1
@@ -88,7 +100,7 @@ int main(int argc, const char** argv) {
         glfwTerminate();
         return -1;
     }
-    context->CreateCircle(CircleRadius, CircleSegmentCount);
+    context->CreateCircle(CircleRadius, circleradius, CircleSegmentCount,a_userang,b_userang);
     //이벤트 처리단
     //윈도우가 처음생성되었을때 아래줄코드(사이즈표시)를 실행해주는부분
     OnFramebufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -99,6 +111,7 @@ int main(int argc, const char** argv) {
 
      // glfw 루프 실행, 윈도우 close 버튼을 누르면 정상 종료
     SPDLOG_INFO("Start main loop");
+
     // while~ 창이 닫힌다가 부정인동안(즉 열려있는동안)
     while (!glfwWindowShouldClose(window)) {
    //이벤트를 수집한다
