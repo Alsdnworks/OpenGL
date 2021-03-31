@@ -1,7 +1,7 @@
 	{
     "cmake.debugConfig": {
       "cwd": "${workspaceFolder}",
-      "args": ["0.4f","0.4f","360","30","360"]
+      "args": ["0.7","0.5","32","45","135","0.0","1.0","1.0"]
     },
     "files.associations": {
       "vector": "cpp"

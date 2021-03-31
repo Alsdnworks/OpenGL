@@ -15,7 +15,7 @@ void Context::Render() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     m_program->Use();
-    glDrawElements(GL_LINE_STRIP, m_IndexCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLE_STRIP, m_IndexCount, GL_UNSIGNED_INT, 0);
 }
 
 
@@ -60,25 +60,23 @@ bool Context::Init() {
     return true;
 }
 
-void Context::CreateCircle(float radius,float s_radius, int segment, int a_userang,int b_userang){
+void Context::CreateCircle(float radius,float s_radius, int segment, int a_userang,int b_userang, float R, float G, float B){
     std::vector<float> b_vertices;
     std::vector<float> a_vertices;
     std::vector<float> vertices;
     std::vector<uint32_t> indices; 
-    
-   
-    int count=0;
-    const float pi =3.14;
-           vertices.push_back(0);
-       vertices.push_back(0);
-       vertices.push_back(0);
+    int ADJ_segment=360/segment;
+    segment=segment*ADJ_segment;
+    float ADJ_srad=radius-s_radius;
+    s_radius=ADJ_srad;
+    const float pi =3.141592f;
+
     for(int i=0; i<segment; i++){
-       count++;
-       float angle = (360.0f/segment*i)*pi/180.0f;
+       float angle = 4*pi*i/segment;
        float x =cosf(angle)*radius;
-       float y =sinf(angle)*(radius);
-       float m_x =cosf(angle)*(radius/s_radius);
-       float m_y =sinf(angle)*(radius/s_radius);
+       float y =sinf(angle)*radius;
+       float m_x =cosf(angle)*(radius-s_radius);
+       float m_y =sinf(angle)*(radius-s_radius);
 
        
        vertices.push_back(m_x);
@@ -93,6 +91,7 @@ void Context::CreateCircle(float radius,float s_radius, int segment, int a_usera
             indices.push_back(a_userang+(i-a_userang)%segment+1);
             indices.push_back(a_userang+(i-a_userang)%segment+2);
         }
+        indices.push_back(b_userang);
 
 
     m_vertexLayout = VertexLayout::Create();
@@ -115,6 +114,6 @@ void Context::CreateCircle(float radius,float s_radius, int segment, int a_usera
 
     auto loc = glGetUniformLocation(m_program->Get(),"color");
     m_program->Use();
-    glUniform4f(loc,1.0f,1.0f,1.0f,1.0f);
+    glUniform4f(loc,R,G,B,1.0f);
 
 }
