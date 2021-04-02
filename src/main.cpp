@@ -110,7 +110,7 @@ int main(int argc, const char** argv) {
         glfwTerminate();
         return -1;
     }
-    context->CreateCircle(CircleRadius, circleradius, CircleSegmentCount,a_userang,b_userang,R,G,B);
+    context->Init();
     //이벤트 처리단
     //윈도우가 처음생성되었을때 아래줄코드(사이즈표시)를 실행해주는부분
     OnFramebufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);

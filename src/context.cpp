@@ -1,5 +1,6 @@
 #include "context.h"
 #include <iostream>
+#include "image.h"
 
 ContextUPtr Context::Create() {
     auto context = ContextUPtr(new Context());
@@ -19,46 +20,64 @@ void Context::Render() {
 }
 
 
+
 bool Context::Init() {
+    //텍스처를 추가하기위해 xyzrgb에 st를 추가하였다
     float vertices[] = {
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right, red
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right, green
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left, blue
-        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, // top left, yellow
+        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right, red
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right, green
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f ,0.0f, // bottom left, blue
+        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top left, yellow
     };
     uint32_t indices[] = { // note that we start from 0!
         0, 1, 3, // first triangle
         1, 2, 3, // second triangle
     };
-
     m_vertexLayout = VertexLayout::Create();
     m_vertexBuffer = Buffer::CreateWithData(
         GL_ARRAY_BUFFER, GL_STATIC_DRAW,
-        vertices, sizeof(float) * 24);
+        vertices, sizeof(float) * 32);
 
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
-    m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, sizeof(float) * 3);
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0);
+    m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 3);
+    //텍스쳐 코디네이트 2차원데이터
+    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 6);
+    m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * 6);
 
-    m_indexBuffer = Buffer::CreateWithData(
-        GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW,
-        indices, sizeof(uint32_t) * 6);
-
-    ShaderPtr vertShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
+    ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
+    ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
     if (!vertShader || !fragShader)
         return false;
     SPDLOG_INFO("vertex shader id: {}", vertShader->Get());
     SPDLOG_INFO("fragment shader id: {}", fragShader->Get());
-
     m_program = Program::Create({fragShader, vertShader});
     if (!m_program)
         return false;
     SPDLOG_INFO("program id: {}", m_program->Get());
-
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
+//이미지로딩부
+     auto image = Image::Load("./image/container.jpg");
+    if (!image) 
+        return false;
+    SPDLOG_INFO("image: {}x{}, {} channels",
+            image->GetWidth(), image->GetHeight(), image->GetChannelCount());
+//30,46분참조 6-2
+     //텍스쳐오브제생성
+    glGenTextures(1, &m_texture);
+    //사용하고자하는 텍스쳐바인딩
+    glBindTexture(GL_TEXTURE_2D, m_texture);
+    //텍스쳐필터와 래핑방식등 파라미터를 설정
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//텍스쳐타겟(형식), 베이스레벨,  텍스쳐의 픽셀포맷, w,  h,  텍스쳐외곽크기, 입력하는이미지의픽셀포맷,   입력하는 이미지의 채널별데이터타입, 이미지데이터가기록된 메모리의주소
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->GetWidth(), image->GetHeight(),0, GL_RGB, GL_UNSIGNED_BYTE, image->GetData());
 
     return true;
 }
+
+
 
 void Context::CreateCircle(float radius,float s_radius, int segment, int a_userang,int b_userang, float R, float G, float B){
     std::vector<float> b_vertices;
