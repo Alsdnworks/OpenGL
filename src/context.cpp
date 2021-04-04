@@ -16,6 +16,7 @@ void Context::Render() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     m_program->Use();
+    glUniform1i(glGetUniformLocation(m_program->Get(),"tex"),0);
     glDrawElements(GL_TRIANGLE_STRIP, m_IndexCount, GL_UNSIGNED_INT, 0);
 }
 
@@ -55,24 +56,26 @@ bool Context::Init() {
         return false;
     SPDLOG_INFO("program id: {}", m_program->Get());
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
-//이미지로딩부
+
+
+ 
      auto image = Image::Load("./image/container.jpg");
     if (!image) 
         return false;
     SPDLOG_INFO("image: {}x{}, {} channels",
             image->GetWidth(), image->GetHeight(), image->GetChannelCount());
-//30,46분참조 6-2
-     //텍스쳐오브제생성
-    glGenTextures(1, &m_texture);
-    //사용하고자하는 텍스쳐바인딩
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-    //텍스쳐필터와 래핑방식등 파라미터를 설정
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//텍스쳐타겟(형식), 베이스레벨,  텍스쳐의 픽셀포맷, w,  h,  텍스쳐외곽크기, 입력하는이미지의픽셀포맷,   입력하는 이미지의 채널별데이터타입, 이미지데이터가기록된 메모리의주소
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->GetWidth(), image->GetHeight(),0, GL_RGB, GL_UNSIGNED_BYTE, image->GetData());
+     m_texture=Texture::CreateFromImage(image.get());
+     auto image2 =Image::Load("./image/awesomeface.png");
+     m_texture2=Texture::CreateFromImage(image2.get());
+
+     glActiveTexture(GL_TEXTURE0);
+     glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+     glActiveTexture(GL_TEXTURE1);
+     glBindTexture(GL_TEXTURE_2D, m_texture2->Get());
+     
+     m_program->Use();
+     glUniform1i(glGetUniformLocation(m_program->Get(), "tex"), 0);
+     glUniform1i(glGetUniformLocation(m_program->Get(), "tex2"), 1);
 
     return true;
 }
