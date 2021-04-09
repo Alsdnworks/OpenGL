@@ -13,7 +13,7 @@ class Context {
 public:
     static ContextUPtr Create();
     void Render();    
-                                     bool Init();
+     bool Init();
 
     void CreateCircle(float radius,float s_radius, int segment,int a_userang,int b_userang, float R, float G, float B);
 private:

@@ -4,7 +4,8 @@
       "args": ["0.7","0.5","32","45","135","0.0","1.0","1.0"]
     },
     "files.associations": {
-      "vector": "cpp"
+      "vector": "cpp",
+      "xstring": "cpp"
     }
   }
 
