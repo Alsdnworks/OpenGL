@@ -31,8 +31,23 @@ void Context::Render() {
 
     auto projection = glm::perspective(glm::radians(45.0f),
         (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.01f, 20.0f);
-    auto view = glm::translate(glm::mat4(1.0f),
-        glm::vec3(0.0f, 0.0f, -3.0f));
+    float x = sinf((float)glfwGetTime()*glm::pi<float>()*2.0f);
+
+    auto cameraPos = glm::vec3(x, 0.0, 3.0f);
+    auto cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    auto cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    auto cameraZ = glm::normalize(cameraPos - cameraTarget);
+    auto cameraX = glm::normalize(glm::cross(cameraUp, cameraZ));
+    auto cameraY = glm::cross(cameraZ, cameraX);
+
+    auto cameraMat = glm::mat4(
+        glm::vec4(cameraX, 0.0f),
+        glm::vec4(cameraY, 0.0f),
+        glm::vec4(cameraZ, 0.0f),
+        glm::vec4(cameraPos, 1.0f));
+
+    auto view = glm::inverse(cameraMat);
 
     for (size_t i = 0; i < cubePositions.size(); i++){
         auto& pos = cubePositions[i];
@@ -120,7 +135,7 @@ bool Context::Init() {
     SPDLOG_INFO("image: {}x{}, {} channels",
             image->GetWidth(), image->GetHeight(), image->GetChannelCount());
      m_texture=Texture::CreateFromImage(image.get());
-     auto image2 =Image::Load("./image/awesomeface.png");
+     auto image2 =Image::Load("./image/sans.png");
      m_texture2=Texture::CreateFromImage(image2.get());
 
      glActiveTexture(GL_TEXTURE0);
@@ -131,7 +146,7 @@ bool Context::Init() {
      m_program->Use();
      m_program->SetUniform("tex",0);    
      m_program->SetUniform("tex2",1);
-//7-3강 20분
+//7-3강 20분*
     // x축으로 -55도 회전
     auto model = glm::rotate(glm::mat4(1.0f),
       glm::radians(-50.0f), glm::vec3(1.0f, 0.0f, 0.0f));
