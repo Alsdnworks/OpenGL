@@ -1,6 +1,7 @@
 #include "context.h"
 #include <iostream>
 #include "image.h"
+#include "imgui.h"
 
 ContextUPtr Context::Create() {
     auto context = ContextUPtr(new Context());
@@ -70,6 +71,22 @@ void Context::MouseButton(int button, int action, double x, double y) {
 }
 
 void Context::Render() {
+    if(ImGui::Begin("ui window")){
+      if(ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor)));{
+        glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
+        }
+        ImGui::Separator();
+        ImGui::DragFloat3("camera pos",glm::value_ptr(m_cameraPos),0.01f);
+        ImGui::DragFloat("camera yaw",&m_cameraYaw,0.5f);
+        ImGui::DragFloat("camera pitch",&m_cameraPitch,0.5f, -89.0f, 89.0f);
+        ImGui::Separator();
+          if (ImGui::Button("reset camera")) {
+            m_cameraYaw = 0.0f;
+            m_cameraPitch = 0.0f;
+            m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+      }
+    }
+    ImGui::End();
     std::vector<glm::vec3> cubePositions = {
         glm::vec3( 0.0f, 0.0f, 0.0f),
         glm::vec3( 2.0f, 5.0f, -15.0f),
@@ -177,7 +194,7 @@ bool Context::Init() {
     SPDLOG_INFO("image: {}x{}, {} channels",
             image->GetWidth(), image->GetHeight(), image->GetChannelCount());
      m_texture=Texture::CreateFromImage(image.get());
-     auto image2 =Image::Load("./image/sans.png");
+     auto image2 =Image::Load("./image/awesomeface.png");
      m_texture2=Texture::CreateFromImage(image2.get());
      glActiveTexture(GL_TEXTURE0);
      glBindTexture(GL_TEXTURE_2D, m_texture->Get());
@@ -228,8 +245,6 @@ void Context::CreateCircle(float radius,float s_radius, int segment, int a_usera
         GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices.data(), sizeof(float) * vertices.size()); //.data()벡터함수 내부에서 제공하는 콜백포인터
 
     m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-
-
     m_indexBuffer = Buffer::CreateWithData(
         GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size()); 
         m_IndexCount = (int)indices.size();

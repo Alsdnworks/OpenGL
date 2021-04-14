@@ -28,7 +28,8 @@ private:
     int m_IndexCount{6};
     TextureUPtr m_texture;
     TextureUPtr m_texture2;
-    	
+    //clear color
+    glm::vec4 m_clearColor {glm::vec4(0.0f,0.0f,0.0f,0.0f)};	
     // camera parameter
     bool m_cameraControl { false };
     glm::vec2 m_prevMousePos { glm::vec2(0.0f) };    
