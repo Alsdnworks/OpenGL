@@ -3,12 +3,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-//윈도우 크기가 변경되면 로그를 표시해주는 함수
-void OnFramebufferSizeChange(GLFWwindow* window, int width, int height) {
-    SPDLOG_INFO("framebuffer size changed: ({} x {})", width, height);
-    //glViewport를 지정하는 부분(xy좌표,크기지정)
-    glViewport(0, 0, width, height);
-}
+void OnFramebufferSizeChange(GLFWwindow* window, int width, int height){
+  SPDLOG_INFO("framebuffer size changed: ({} x {})", width, height);
+  auto context = (Context*)glfwGetWindowUserPointer(window);
+  context->Reshape(width,height);
+  //7-5 23분에 타입캐스팅참조
+  }
+
 
 //키로그를 찍는코드와 key == GLFW_KEY_ESCAPE(이에스시)가 눌리면 종료를 구현하는함수 
 void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -24,6 +25,18 @@ void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
         glfwSetWindowShouldClose(window, true);
     }
 }
+
+void OnCursorPos(GLFWwindow* window, double x, double y) {
+     auto context = (Context*)glfwGetWindowUserPointer(window);
+     context->MouseMove(x, y);
+}
+
+void OnMouseButton(GLFWwindow* window, int button, int action, int modifier) {
+  auto context = (Context*)glfwGetWindowUserPointer(window);
+  double x, y;
+  glfwGetCursorPos(window, &x, &y);
+  context->MouseButton(button, action, x, y);
+}  
 
 int main(int argc, const char** argv) {
     // 시작을 알리는 로그
@@ -112,13 +125,16 @@ int main(int argc, const char** argv) {
     }
     context->Init();
     //이벤트 처리단
+    glfwSetWindowUserPointer(window,context.get());
+
     //윈도우가 처음생성되었을때 아래줄코드(사이즈표시)를 실행해주는부분
     OnFramebufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);
     //윈도우 크기 변경 이벤트를 수집했을때 OnFramebufferSizeChange함수를 호출   
     glfwSetFramebufferSizeCallback(window, OnFramebufferSizeChange);
     //윈도우 키 입력 이벤트를 수집했을때 OnKeyEvent함수를 호출   
     glfwSetKeyCallback(window, OnKeyEvent);
-
+    glfwSetCursorPosCallback(window,OnCursorPos);
+    glfwSetMouseButtonCallback(window, OnMouseButton);
      // glfw 루프 실행, 윈도우 close 버튼을 누르면 정상 종료
     SPDLOG_INFO("Start main loop");
 
@@ -127,6 +143,8 @@ int main(int argc, const char** argv) {
    //이벤트를 수집한다
         glfwPollEvents();
         context->Render();
+        context->ProcessInput(window);
+
         //프레임버퍼는 2개 화면을 확장하면 백버퍼에 그림을 그리고 준비가되면
         //프론트버퍼와 스왑해준다.(밑의 3줄) 이는 부드러운 화면전환이 가능하게해준다.
         glfwSwapBuffers(window);
