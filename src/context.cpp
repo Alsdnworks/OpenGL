@@ -49,12 +49,12 @@ void Context::MouseMove(double x, double y){
   const float cameraRotSpeed = 0.8f;
   m_cameraYaw -= deltaPos.x * cameraRotSpeed;
   m_cameraPitch -= deltaPos.y * cameraRotSpeed;
-  //360=0을 이용(예외처리)
+   
   if (m_cameraYaw < 0.0f)
     m_cameraYaw += 360.0f;
   if (m_cameraYaw > 360.0f)
     m_cameraYaw -= 360.0f;
-  //더 못가게 유지(예외처리)
+   
   if (m_cameraPitch > 89.0f)
     m_cameraPitch = 89.0f;
   if (m_cameraPitch < -89.0f)
@@ -66,7 +66,7 @@ void Context::MouseMove(double x, double y){
 void Context::MouseButton(int button, int action, double x, double y){
   if (button == GLFW_MOUSE_BUTTON_RIGHT){
     if (action == GLFW_PRESS){
-      // 마우스 조작 시작 시점에 현재 마우스 커서 위치 저장
+       
       m_prevMousePos = glm::vec2((float)x, (float)y);
       m_cameraControl = true;
     }
@@ -81,6 +81,10 @@ void Context::Render(){
     if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor))){
       glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     }
+    ImGui::Text("%d   #vertices",(Count_vertices));
+    ImGui::Text("%d   #triangles",(Count_triangles));
+
+
     ImGui::Separator();
     ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
     ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
@@ -91,15 +95,7 @@ void Context::Render(){
       m_cameraPitch = 0.0f;
       m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
     }
-    ImGui::DragFloat3("material rotate", glm::value_ptr(matrot), 0.1f);
-    ImGui::DragFloat3("material scale", glm::value_ptr(matsca), 0.1f);
-
-    for (int i = 0; i < 3; i++){
-      if (matrot[i] < 0.0f)
-        matrot[i] += 360.0f;
-      if (matrot[i] > 360.0f)
-        matrot[i] -= 360.0f;
-    }
+   ImGui::Separator();
 
     static const char *textures[]{"wood", "earth", "metal"};
     static int selected = 0;
@@ -122,6 +118,30 @@ void Context::Render(){
       Init();
       currentset = selected;
     }
+    ImGui::Separator();
+
+
+    ImGui::DragFloat3("rotation", glm::value_ptr(matrot), 0.1f);
+    ImGui::DragFloat3("scale", glm::value_ptr(matsca), 0.02f);
+    for (int i = 0; i < 3; i++){
+      if (matrot[i] < 0.0f)
+        matrot[i] += 360.0f;
+      if (matrot[i] > 360.0f)
+        matrot[i] -= 360.0f;
+    }
+
+    static bool isanimation;
+    ImGui::Checkbox("animation", &isanimation);
+    ImGui::DragFloat3("rot speed", glm::value_ptr(matspd), 0.1f);
+    for (int i = 0; i < 3; i++){
+    matspd[i]=matspd[i]*isanimation;}
+
+    if (ImGui::Button("reset transform")){
+      matspd = glm::vec3(0.0f, 0.0f, 0.0f);
+      matrot = glm::vec3(0.0f, 0.0f, 0.0f);
+      matsca = glm::vec3(1.0f, 1.0f, 1.0f);
+      isanimation=false;
+    }
   }
   ImGui::End();
   std::vector<glm::vec3> cubePositions = {glm::vec3(0.0f, 0.0f, 0.0f)};
@@ -129,7 +149,7 @@ void Context::Render(){
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
 
-  m_cameraFront = //방향벡터라 i가 0인이유는 평행이동 성분을 제거
+  m_cameraFront =  
       glm::rotate(glm::mat4(1.0f),glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
       glm::rotate(glm::mat4(1.0f),glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
       glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
@@ -146,20 +166,20 @@ void Context::Render(){
   scaleMatrix[1][1] = matsca[1];
   scaleMatrix[2][2] = matsca[2];
   glm::mat4 rotXMatrix = glm::mat4(1.0f);
-  rotXMatrix[1][1] = cos(matrot[0] / 57.3);
-  rotXMatrix[1][2] = -sin(matrot[0] / 57.3);
-  rotXMatrix[2][1] = sin(matrot[0] / 57.3);
-  rotXMatrix[2][2] = cos(matrot[0] / 57.3);
+  rotXMatrix[1][1] = cos((matspd[0]*(float)glfwGetTime())+matrot[0] / 57.3);
+  rotXMatrix[1][2] = -sin((matspd[0]*(float)glfwGetTime())+matrot[0] / 57.3);
+  rotXMatrix[2][1] = sin((matspd[0]*(float)glfwGetTime())+matrot[0] / 57.3);
+  rotXMatrix[2][2] = cos((matspd[0]*(float)glfwGetTime())+matrot[0] / 57.3);
   glm::mat4 rotYMatrix = glm::mat4(1.0f);
-  rotYMatrix[0][0] = cos(matrot[1] / 57.3);
-  rotYMatrix[0][2] = sin(matrot[1] / 57.3);
-  rotYMatrix[2][0] = -sin(matrot[1] / 57.3);
-  rotYMatrix[2][2] = cos(matrot[1] / 57.3);
+  rotYMatrix[0][0] = cos((matspd[1]*(float)glfwGetTime())+matrot[1] / 57.3);
+  rotYMatrix[0][2] = sin((matspd[1]*(float)glfwGetTime())+matrot[1] / 57.3);
+  rotYMatrix[2][0] = -sin((matspd[1]*(float)glfwGetTime())+matrot[1] / 57.3);
+  rotYMatrix[2][2] = cos((matspd[1]*(float)glfwGetTime())+matrot[1] / 57.3);
   glm::mat4 rotZMatrix = glm::mat4(1.0f);
-  rotZMatrix[0][0] = cos(matrot[2] / 57.3);
-  rotZMatrix[0][1] = -sin(matrot[2] / 57.3);
-  rotZMatrix[1][0] = sin(matrot[2] / 57.3);
-  rotZMatrix[1][1] = cos(matrot[2] / 57.3);
+  rotZMatrix[0][0] = cos((matspd[2]*(float)glfwGetTime())+matrot[2] / 57.3);
+  rotZMatrix[0][1] = -sin((matspd[2]*(float)glfwGetTime())+matrot[2] / 57.3);
+  rotZMatrix[1][0] = sin((matspd[2]*(float)glfwGetTime())+matrot[2] / 57.3);
+  rotZMatrix[1][1] = cos((matspd[2]*(float)glfwGetTime())+matrot[2] / 57.3);
 
   glm::mat4 materialSet = rotZMatrix * rotYMatrix * rotXMatrix * scaleMatrix;
   auto transform = projection * view * materialSet;
@@ -168,7 +188,7 @@ void Context::Render(){
 }
 
 bool Context::Init() {
-    //텍스처를 추가하기위해 xyzrgb에 st를 추가하였다
+     
     float vertices[] = {        
       -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
@@ -209,13 +229,14 @@ bool Context::Init() {
       16, 17, 18, 18, 19, 16,
       20, 22, 21, 22, 20, 23,
     };
+    Count_vertices=sizeof(vertices)/4;Count_triangles=sizeof(indices)/4;
     m_vertexLayout = VertexLayout::Create();
     m_vertexBuffer = Buffer::CreateWithData(
         GL_ARRAY_BUFFER, GL_STATIC_DRAW,
         vertices, sizeof(float) * (5 * 24));
     m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
     m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
-    //텍스쳐 코디네이트 2차원데이터
+     
     m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * (6 * 6));
     ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
     ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
@@ -239,7 +260,7 @@ bool Context::Init() {
     glBindTexture(GL_TEXTURE_2D, m_texture->Get());
     m_program->Use();
     m_program->SetUniform("tex", 0);
-    //7-3강 20분*
+     
     return true;
 }
 
@@ -277,7 +298,7 @@ void Context::CreateCircle(float radius, float s_radius, int segment, int a_user
 
   m_vertexLayout = VertexLayout::Create();
   m_vertexBuffer = Buffer::CreateWithData(
-      GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices.data(), sizeof(float) * vertices.size()); //.data()벡터함수 내부에서 제공하는 콜백포인터
+      GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices.data(), sizeof(float) * vertices.size());  
 
   m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
   m_indexBuffer = Buffer::CreateWithData(

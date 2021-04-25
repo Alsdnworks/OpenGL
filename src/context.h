@@ -14,12 +14,11 @@ public:
     static ContextUPtr Create();
     void Render();
     void ProcessInput(GLFWwindow* window);
-     bool Init();
-     void Reshape(int width, int height);
-     void MouseMove(double x, double y);
-     void MouseButton(int button, int action, double x, double y);
-     void CreateCircle(float radius,float s_radius, int segment,int a_userang,int b_userang, float R, float G, float B);
-
+    bool Init();
+    void Reshape(int width, int height);
+    void MouseMove(double x, double y);
+    void MouseButton(int button, int action, double x, double y);
+    void CreateCircle(float radius,float s_radius, int segment,int a_userang,int b_userang, float R, float G, float B);
 private:
     Context() {}
     const char* textureset="./image/wood.jpg";
@@ -40,8 +39,9 @@ private:
     glm::vec3 m_cameraFront { glm::vec3(0.0f, 0.0f, -1.0f) };
     glm::vec3 m_cameraUp { glm::vec3(0.0f, 1.0f, 0.0f) };
     glm::vec3 matrot{glm::vec3(0.0f,0.0f,0.0f)};
-    glm::vec3 matsca{glm::vec3(1.0f,1.0f,.0f)};
-
+    glm::vec3 matsca{glm::vec3(1.0f,1.0f,1.0f)};
+    glm::vec3 matspd{glm::vec3(0.0f,0.0f,0.0f)};
+    int Count_vertices{0}; int Count_triangles{0};
     int m_width{WINDOW_WIDTH};
     int m_height{WINDOW_HEIGHT};
 
