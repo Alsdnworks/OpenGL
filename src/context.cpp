@@ -81,8 +81,8 @@ void Context::Render(){
     if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor))){
       glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     }
-    ImGui::Text("%d   #vertices",(Count_vertices));
-    ImGui::Text("%d   #triangles",(Count_triangles));
+    ImGui::Text("%d   #vertices",(m_VertexCount));
+    ImGui::Text("%d   #triangles",(m_IndexCount));
 
 
     ImGui::Separator();
@@ -97,26 +97,60 @@ void Context::Render(){
     }
    ImGui::Separator();
 
-    static const char *textures[]{"wood", "earth", "metal"};
-    static int selected = 0;
-    static int currentset = 0;
-    ImGui::Combo("Texture", &selected, textures, IM_ARRAYSIZE(textures));
-    if (selected != currentset){
-      switch (selected){
+
+static const char *primitive[]{"Cube", "Cylinder", "Torus"};
+    static int pre_selected = 0;
+    static int pre_currentset = 0;
+    ImGui::Combo("primitive", &pre_selected, primitive, IM_ARRAYSIZE(primitive));
+    if (pre_selected != pre_currentset){
+      switch (pre_selected){
       case 0:
-        textureset = "./image/wood.jpg";
+        Init();
+                pre_currentset=0;
         break;
       case 1:
-        textureset = "./image/earth.jpg";
+        CreateCylinder();
+        pre_currentset=1;
         break;
       case 2:
-        textureset = "./image/metal.jpg";
+        CreateTorus();
+                pre_currentset=2;
         break;
       default:
         break;
       }
-      Init();
-      currentset = selected;
+    }
+
+
+    static const char *textures[]{"wood", "earth", "metal"};
+    static int tex_selected = 0;
+    static int tex_currentset = 0;
+    ImGui::Combo("Texture", &tex_selected, textures, IM_ARRAYSIZE(textures));
+    if (tex_selected != tex_currentset){
+      switch (tex_selected){
+      case 0:
+        textureset = "./image/wood.jpg";
+                        tex_currentset=0;
+
+        break;
+      case 1:
+        textureset = "./image/earth.jpg";
+                                tex_currentset=1;
+
+        break;
+      case 2:
+        textureset = "./image/metal.jpg";
+                                tex_currentset=2;
+
+        break;
+      default:
+        break;
+      }
+
+    
+      
+      //여기매쉬명 입력
+      tex_currentset = tex_selected;
     }
     ImGui::Separator();
 
@@ -184,7 +218,9 @@ void Context::Render(){
   glm::mat4 materialSet = rotZMatrix * rotYMatrix * rotXMatrix * scaleMatrix;
   auto transform = projection * view * materialSet;
   m_program->SetUniform("transform", transform);
-  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+  //여기 렌저타입임력
+  glDrawElements(GL_TRIANGLES, m_IndexCount, GL_UNSIGNED_INT, 0);
 }
 
 bool Context::Init() {
@@ -229,7 +265,8 @@ bool Context::Init() {
       16, 17, 18, 18, 19, 16,
       20, 22, 21, 22, 20, 23,
     };
-    Count_vertices=sizeof(vertices)/4;Count_triangles=sizeof(indices)/4;
+    m_VertexCount=sizeof(vertices)/4; m_IndexCount=sizeof(indices)/3;
+
     m_vertexLayout = VertexLayout::Create();
     m_vertexBuffer = Buffer::CreateWithData(
         GL_ARRAY_BUFFER, GL_STATIC_DRAW,
@@ -263,56 +300,133 @@ bool Context::Init() {
      
     return true;
 }
+void Context::CreateCylinder(){
+    std::vector<float> vertices;
+    std::vector<uint32_t> indices; 
+    const float pi =3.141592f;
 
-void Context::CreateCircle(float radius, float s_radius, int segment, int a_userang, int b_userang, float R, float G, float B){
-  std::vector<float> b_vertices;
-  std::vector<float> a_vertices;
-  std::vector<float> vertices;
-  std::vector<uint32_t> indices;
-  int ADJ_segment = 360 / segment;
-  segment = segment * ADJ_segment;
-  float ADJ_srad = radius - s_radius;
-  s_radius = ADJ_srad;
-  const float pi = 3.141592f;
+    for(int i=0; i<360; i++){
+       float angle = 4*pi*i/360;
+       float x =cosf(angle);
+       float y =sinf(angle);
+       
+       vertices.push_back(0);
+       vertices.push_back(0);
+       vertices.push_back(0.5f);
+       vertices.push_back(0.014*i);
+       vertices.push_back(0.014*i);
 
-  for (int i = 0; i < segment; i++){
-    float angle = 4 * pi * i / segment;
-    float x = cosf(angle) * radius;
-    float y = sinf(angle) * radius;
-    float m_x = cosf(angle) * (radius - s_radius);
-    float m_y = sinf(angle) * (radius - s_radius);
+       vertices.push_back(x);
+       vertices.push_back(y);
+       vertices.push_back(0.5f);
+       vertices.push_back(0.014*i);
+       vertices.push_back(0.014*i);
 
-    vertices.push_back(m_x);
-    vertices.push_back(m_y);
-    vertices.push_back(0);
-    vertices.push_back(x);
-    vertices.push_back(y);
-    vertices.push_back(0);
-  }
-  for (int i = a_userang; i < b_userang; i++){
-    indices.push_back(a_userang + (i - a_userang) % segment);
-    indices.push_back(a_userang + (i - a_userang) % segment + 1);
-    indices.push_back(a_userang + (i - a_userang) % segment + 2);
-  }
-  indices.push_back(b_userang);
 
-  m_vertexLayout = VertexLayout::Create();
-  m_vertexBuffer = Buffer::CreateWithData(
-      GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices.data(), sizeof(float) * vertices.size());  
+       vertices.push_back(0);
+       vertices.push_back(0);
+       vertices.push_back(-0.5f);
+       vertices.push_back(0.014*i);
+       vertices.push_back(0.014*i);       
 
-  m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-  m_indexBuffer = Buffer::CreateWithData(
-      GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size());
-  m_IndexCount = (int)indices.size();
+       vertices.push_back(x);
+       vertices.push_back(y);
+       vertices.push_back(-0.5f);
+       vertices.push_back(0.014*i);
+       vertices.push_back(0.014*i);
+    }
+    //top 
+        for(int i = 0; i < 720; i++){
+          if(i%4==0){
 
-  for (int i = 0; i < indices.size(); ++i){
-    std::cout << indices[i] << std::endl;
-  }
-  for (int i = 0; i < vertices.size(); ++i){
-    std::cout << vertices[i] << std::endl;
-  }
+            indices.push_back(i%720+2);
+            indices.push_back(i%720+3);
+            indices.push_back(i%720+7);
+          }
+        }
+//bommtom
 
-  auto loc = glGetUniformLocation(m_program->Get(), "color");
-  m_program->Use();
-  glUniform4f(loc, R, G, B, 1.0f);
+                for(int i = 0; i < 720; i++){
+          if(i%4==0){
+            indices.push_back(i%720);
+            indices.push_back(i%720+1);
+            indices.push_back(i%720+5);
+          }
+                      indices.push_back(i%720);
+        }
+        //sideface
+        for(int i = 1; i%720+4 < 720; i+=2){
+            indices.push_back(i%720);
+            indices.push_back(i%720+2);
+            indices.push_back(i%720+4);
+        }        
+
+
+
+    m_vertexLayout = VertexLayout::Create();
+    m_vertexBuffer = Buffer::CreateWithData(
+        GL_ARRAY_BUFFER, GL_STATIC_DRAW,
+        vertices.data(), sizeof(float) * vertices.size());
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
+     
+    m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size());
+        m_VertexCount = (int)indices.size();
+        m_IndexCount = (int)vertices.size();
+    ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
+    ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
+
+    SPDLOG_INFO("vertex shader id: {}", vertShader->Get());
+    SPDLOG_INFO("fragment shader id: {}", fragShader->Get());
+    m_program = Program::Create({fragShader, vertShader});
+
+    SPDLOG_INFO("program id: {}", m_program->Get());
+    glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
+
+    auto image = Image::Load(textureset);
+
+    SPDLOG_INFO("image: {}x{}, {} channels",
+                image->GetWidth(), image->GetHeight(), image->GetChannelCount());
+    m_texture = Texture::CreateFromImage(image.get());
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+    m_program->Use();
+    m_program->SetUniform("tex", 0);
+
 }
+
+
+void Context::CreateTorus(){
+
+float radius = 1;
+
+    float radian = 3.141592 / 180;
+
+    float maxAnlge = 360;
+
+    for (int i = 0; i <= maxAnlge; i++) {
+
+        glRotatef(i, 0, 1, 0);
+
+        glBegin(GL_LINE_STRIP);
+
+        glColor3f(0.8, 0.6, 0);
+
+        glPushMatrix(); {    // 원 그리기
+
+            for (int i = 0; i <= maxAnlge; i++) {
+
+                radian += i;
+
+                glm::vec3(cos(radian) * radius, sin(radian) * radius, 0); 
+
+            }
+
+        }
+
+    }
+
+    glFlush();
+
+}
+
