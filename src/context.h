@@ -21,6 +21,8 @@ public:
     void CreateCylinder();
     void CreateTorus();
     void CreateCube();
+    void CreateSphere();
+
 
 
 private:

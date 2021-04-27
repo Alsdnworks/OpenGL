@@ -1,11 +1,11 @@
 
-
 #include "context.h"
 #include <iostream>
 #include "image.h"
 #include "imgui.h"
 
-ContextUPtr Context::Create(){
+ContextUPtr Context::Create()
+
   auto context = ContextUPtr(new Context());
   if (!context->Init())
     return nullptr;
@@ -49,12 +49,12 @@ void Context::MouseMove(double x, double y){
   const float cameraRotSpeed = 0.8f;
   m_cameraYaw -= deltaPos.x * cameraRotSpeed;
   m_cameraPitch -= deltaPos.y * cameraRotSpeed;
-   
+
   if (m_cameraYaw < 0.0f)
     m_cameraYaw += 360.0f;
   if (m_cameraYaw > 360.0f)
     m_cameraYaw -= 360.0f;
-   
+
   if (m_cameraPitch > 89.0f)
     m_cameraPitch = 89.0f;
   if (m_cameraPitch < -89.0f)
@@ -66,7 +66,7 @@ void Context::MouseMove(double x, double y){
 void Context::MouseButton(int button, int action, double x, double y){
   if (button == GLFW_MOUSE_BUTTON_RIGHT){
     if (action == GLFW_PRESS){
-       
+
       m_prevMousePos = glm::vec2((float)x, (float)y);
       m_cameraControl = true;
     }
@@ -81,9 +81,8 @@ void Context::Render(){
     if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor))){
       glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     }
-    ImGui::Text("%d   #vertices",(m_VertexCount));
-    ImGui::Text("%d   #triangles",(m_IndexCount));
-
+    ImGui::Text("%d   #vertices", (m_VertexCount));
+    ImGui::Text("%d   #triangles", (m_IndexCount));
 
     ImGui::Separator();
     ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
@@ -95,10 +94,9 @@ void Context::Render(){
       m_cameraPitch = 0.0f;
       m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
     }
-   ImGui::Separator();
+    ImGui::Separator();
 
-
-static const char *primitive[]{"Cube", "Cylinder", "Torus"};
+    static const char *primitive[]{"Cube", "Cylinder", "Torus"};
     static int pre_selected = 0;
     static int pre_currentset = 0;
     ImGui::Combo("primitive", &pre_selected, primitive, IM_ARRAYSIZE(primitive));
@@ -106,21 +104,20 @@ static const char *primitive[]{"Cube", "Cylinder", "Torus"};
       switch (pre_selected){
       case 0:
         Init();
-                pre_currentset=0;
+        pre_currentset = 0;
         break;
       case 1:
         CreateCylinder();
-        pre_currentset=1;
+        pre_currentset = 1;
         break;
       case 2:
         CreateTorus();
-                pre_currentset=2;
+        pre_currentset = 2;
         break;
       default:
         break;
       }
     }
-
 
     static const char *textures[]{"wood", "earth", "metal"};
     static int tex_selected = 0;
@@ -130,30 +127,29 @@ static const char *primitive[]{"Cube", "Cylinder", "Torus"};
       switch (tex_selected){
       case 0:
         textureset = "./image/wood.jpg";
-                        tex_currentset=0;
+        tex_currentset = 0;
 
         break;
       case 1:
         textureset = "./image/earth.jpg";
-                                tex_currentset=1;
+        tex_currentset = 1;
 
         break;
       case 2:
         textureset = "./image/metal.jpg";
-                                tex_currentset=2;
+        tex_currentset = 2;
 
         break;
       default:
         break;
       }
 
-    
-      
+      Init();
+
       //여기매쉬명 입력
       tex_currentset = tex_selected;
     }
     ImGui::Separator();
-
 
     ImGui::DragFloat3("rotation", glm::value_ptr(matrot), 0.1f);
     ImGui::DragFloat3("scale", glm::value_ptr(matsca), 0.02f);
@@ -168,13 +164,14 @@ static const char *primitive[]{"Cube", "Cylinder", "Torus"};
     ImGui::Checkbox("animation", &isanimation);
     ImGui::DragFloat3("rot speed", glm::value_ptr(matspd), 0.1f);
     for (int i = 0; i < 3; i++){
-    matspd[i]=matspd[i]*isanimation;}
+      matspd[i] = matspd[i] * isanimation;
+    }
 
     if (ImGui::Button("reset transform")){
       matspd = glm::vec3(0.0f, 0.0f, 0.0f);
       matrot = glm::vec3(0.0f, 0.0f, 0.0f);
       matsca = glm::vec3(1.0f, 1.0f, 1.0f);
-      isanimation=false;
+      isanimation = false;
     }
   }
   ImGui::End();
@@ -183,13 +180,13 @@ static const char *primitive[]{"Cube", "Cylinder", "Torus"};
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
 
-  m_cameraFront =  
-      glm::rotate(glm::mat4(1.0f),glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
-      glm::rotate(glm::mat4(1.0f),glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
+  m_cameraFront =
+      glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
+      glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
       glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
   auto projection = glm::perspective(glm::radians(45.0f),
-                    (float)m_width / (float)m_height, 0.01f, 20.0f);
+                                     (float)m_width / (float)m_height, 0.01f, 20.0f);
   auto view = glm::lookAt(
       m_cameraPos,
       m_cameraPos + m_cameraFront,
@@ -200,20 +197,20 @@ static const char *primitive[]{"Cube", "Cylinder", "Torus"};
   scaleMatrix[1][1] = matsca[1];
   scaleMatrix[2][2] = matsca[2];
   glm::mat4 rotXMatrix = glm::mat4(1.0f);
-  rotXMatrix[1][1] = cos((matspd[0]*(float)glfwGetTime())+matrot[0] / 57.3);
-  rotXMatrix[1][2] = -sin((matspd[0]*(float)glfwGetTime())+matrot[0] / 57.3);
-  rotXMatrix[2][1] = sin((matspd[0]*(float)glfwGetTime())+matrot[0] / 57.3);
-  rotXMatrix[2][2] = cos((matspd[0]*(float)glfwGetTime())+matrot[0] / 57.3);
+  rotXMatrix[1][1] = cos((matspd[0] * (float)glfwGetTime()) + matrot[0] / 57.3);
+  rotXMatrix[1][2] = -sin((matspd[0] * (float)glfwGetTime()) + matrot[0] / 57.3);
+  rotXMatrix[2][1] = sin((matspd[0] * (float)glfwGetTime()) + matrot[0] / 57.3);
+  rotXMatrix[2][2] = cos((matspd[0] * (float)glfwGetTime()) + matrot[0] / 57.3);
   glm::mat4 rotYMatrix = glm::mat4(1.0f);
-  rotYMatrix[0][0] = cos((matspd[1]*(float)glfwGetTime())+matrot[1] / 57.3);
-  rotYMatrix[0][2] = sin((matspd[1]*(float)glfwGetTime())+matrot[1] / 57.3);
-  rotYMatrix[2][0] = -sin((matspd[1]*(float)glfwGetTime())+matrot[1] / 57.3);
-  rotYMatrix[2][2] = cos((matspd[1]*(float)glfwGetTime())+matrot[1] / 57.3);
+  rotYMatrix[0][0] = cos((matspd[1] * (float)glfwGetTime()) + matrot[1] / 57.3);
+  rotYMatrix[0][2] = sin((matspd[1] * (float)glfwGetTime()) + matrot[1] / 57.3);
+  rotYMatrix[2][0] = -sin((matspd[1] * (float)glfwGetTime()) + matrot[1] / 57.3);
+  rotYMatrix[2][2] = cos((matspd[1] * (float)glfwGetTime()) + matrot[1] / 57.3);
   glm::mat4 rotZMatrix = glm::mat4(1.0f);
-  rotZMatrix[0][0] = cos((matspd[2]*(float)glfwGetTime())+matrot[2] / 57.3);
-  rotZMatrix[0][1] = -sin((matspd[2]*(float)glfwGetTime())+matrot[2] / 57.3);
-  rotZMatrix[1][0] = sin((matspd[2]*(float)glfwGetTime())+matrot[2] / 57.3);
-  rotZMatrix[1][1] = cos((matspd[2]*(float)glfwGetTime())+matrot[2] / 57.3);
+  rotZMatrix[0][0] = cos((matspd[2] * (float)glfwGetTime()) + matrot[2] / 57.3);
+  rotZMatrix[0][1] = -sin((matspd[2] * (float)glfwGetTime()) + matrot[2] / 57.3);
+  rotZMatrix[1][0] = sin((matspd[2] * (float)glfwGetTime()) + matrot[2] / 57.3);
+  rotZMatrix[1][1] = cos((matspd[2] * (float)glfwGetTime()) + matrot[2] / 57.3);
 
   glm::mat4 materialSet = rotZMatrix * rotYMatrix * rotXMatrix * scaleMatrix;
   auto transform = projection * view * materialSet;
@@ -265,15 +262,12 @@ bool Context::Init() {
       16, 17, 18, 18, 19, 16,
       20, 22, 21, 22, 20, 23,
     };
-    m_VertexCount=sizeof(vertices)/4; m_IndexCount=sizeof(indices)/3;
-
+    m_VertexCount = sizeof(vertices) / 4;
+    m_IndexCount = sizeof(indices) / 3;
     m_vertexLayout = VertexLayout::Create();
-    m_vertexBuffer = Buffer::CreateWithData(
-        GL_ARRAY_BUFFER, GL_STATIC_DRAW,
-        vertices, sizeof(float) * (5 * 24));
+    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * (5 * 24));
     m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
     m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
-     
     m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * (6 * 6));
     ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
     ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
@@ -297,136 +291,164 @@ bool Context::Init() {
     glBindTexture(GL_TEXTURE_2D, m_texture->Get());
     m_program->Use();
     m_program->SetUniform("tex", 0);
-     
+
     return true;
 }
 void Context::CreateCylinder(){
-    std::vector<float> vertices;
-    std::vector<uint32_t> indices; 
-    const float pi =3.141592f;
+  std::vector<float> vertices;
+  std::vector<uint32_t> indices;
+  const float pi = 3.141592f;
 
-    for(int i=0; i<360; i++){
-       float angle = 4*pi*i/360;
-       float x =cosf(angle);
-       float y =sinf(angle);
-       
-       vertices.push_back(0);
-       vertices.push_back(0);
-       vertices.push_back(0.5f);
-       vertices.push_back(0.014*i);
-       vertices.push_back(0.014*i);
+  for (int i = 0; i < 360; i++){
+    float angle = 4 * pi * i / 360;
+    float x = cosf(angle);
+    float y = sinf(angle);
 
-       vertices.push_back(x);
-       vertices.push_back(y);
-       vertices.push_back(0.5f);
-       vertices.push_back(0.014*i);
-       vertices.push_back(0.014*i);
+    vertices.push_back(0);
+    vertices.push_back(0);
+    vertices.push_back(0.5f);
+    vertices.push_back(0.014 * i);
+    vertices.push_back(0.014 * i);
 
+    vertices.push_back(x);
+    vertices.push_back(y);
+    vertices.push_back(0.5f);
+    vertices.push_back(0.014 * i);
+    vertices.push_back(0.014 * i);
 
-       vertices.push_back(0);
-       vertices.push_back(0);
-       vertices.push_back(-0.5f);
-       vertices.push_back(0.014*i);
-       vertices.push_back(0.014*i);       
+    vertices.push_back(0);
+    vertices.push_back(0);
+    vertices.push_back(-0.5f);
+    vertices.push_back(0.014 * i);
+    vertices.push_back(0.014 * i);
 
-       vertices.push_back(x);
-       vertices.push_back(y);
-       vertices.push_back(-0.5f);
-       vertices.push_back(0.014*i);
-       vertices.push_back(0.014*i);
+    vertices.push_back(x);
+    vertices.push_back(y);
+    vertices.push_back(-0.5f);
+    vertices.push_back(0.014 * i);
+    vertices.push_back(0.014 * i);
+  }
+  //top
+  for (int i = 0; i < 720; i++){
+    if (i % 4 == 0){
+      indices.push_back(i % 720 + 2);
+      indices.push_back(i % 720 + 3);
+      indices.push_back(i % 720 + 7);
     }
-    //top 
-        for(int i = 0; i < 720; i++){
-          if(i%4==0){
+  }
+  //bommtom
 
-            indices.push_back(i%720+2);
-            indices.push_back(i%720+3);
-            indices.push_back(i%720+7);
-          }
-        }
-//bommtom
+  for (int i = 0; i < 720; i++)
+  {
+    if (i % 4 == 0){
+      indices.push_back(i % 720);
+      indices.push_back(i % 720 + 1);
+      indices.push_back(i % 720 + 5);
+    }
+    indices.push_back(i % 720);
+  }
+  //sideface
+  for (int i = 1; i % 720 + 4 < 720; i += 2){
+    indices.push_back(i % 720);
+    indices.push_back(i % 720 + 2);
+    indices.push_back(i % 720 + 4);
+  }
 
-                for(int i = 0; i < 720; i++){
-          if(i%4==0){
-            indices.push_back(i%720);
-            indices.push_back(i%720+1);
-            indices.push_back(i%720+5);
-          }
-                      indices.push_back(i%720);
-        }
-        //sideface
-        for(int i = 1; i%720+4 < 720; i+=2){
-            indices.push_back(i%720);
-            indices.push_back(i%720+2);
-            indices.push_back(i%720+4);
-        }        
+  m_vertexLayout = VertexLayout::Create();
+  m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices.data(), sizeof(float) * vertices.size());
+  m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+  m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
 
+  m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size());
+  m_VertexCount = (int)indices.size();
+  m_IndexCount = (int)vertices.size();
+  ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
+  ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
 
+  SPDLOG_INFO("vertex shader id: {}", vertShader->Get());
+  SPDLOG_INFO("fragment shader id: {}", fragShader->Get());
+  m_program = Program::Create({fragShader, vertShader});
 
-    m_vertexLayout = VertexLayout::Create();
-    m_vertexBuffer = Buffer::CreateWithData(
-        GL_ARRAY_BUFFER, GL_STATIC_DRAW,
-        vertices.data(), sizeof(float) * vertices.size());
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
-     
-    m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size());
-        m_VertexCount = (int)indices.size();
-        m_IndexCount = (int)vertices.size();
-    ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
+  SPDLOG_INFO("program id: {}", m_program->Get());
+  glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
-    SPDLOG_INFO("vertex shader id: {}", vertShader->Get());
-    SPDLOG_INFO("fragment shader id: {}", fragShader->Get());
-    m_program = Program::Create({fragShader, vertShader});
+  auto image = Image::Load(textureset);
 
-    SPDLOG_INFO("program id: {}", m_program->Get());
-    glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
-
-    auto image = Image::Load(textureset);
-
-    SPDLOG_INFO("image: {}x{}, {} channels",
-                image->GetWidth(), image->GetHeight(), image->GetChannelCount());
-    m_texture = Texture::CreateFromImage(image.get());
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texture->Get());
-    m_program->Use();
-    m_program->SetUniform("tex", 0);
-
+  SPDLOG_INFO("image: {}x{}, {} channels",
+              image->GetWidth(), image->GetHeight(), image->GetChannelCount());
+  m_texture = Texture::CreateFromImage(image.get());
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+  m_program->Use();
+  m_program->SetUniform("tex", 0);
 }
-
 
 void Context::CreateTorus(){
-
-float radius = 1;
-
-    float radian = 3.141592 / 180;
-
-    float maxAnlge = 360;
-
-    for (int i = 0; i <= maxAnlge; i++) {
-
-        glRotatef(i, 0, 1, 0);
-
-        glBegin(GL_LINE_STRIP);
-
-        glColor3f(0.8, 0.6, 0);
-
-        glPushMatrix(); {    // 원 그리기
-
-            for (int i = 0; i <= maxAnlge; i++) {
-
-                radian += i;
-
-                glm::vec3(cos(radian) * radius, sin(radian) * radius, 0); 
-
-            }
-
-        }
-
-    }
-
-    glFlush();
-
 }
 
+void Context::CreateSphere(){
+  std::vector<float> vertices;
+  std::vector<int> indices;
+  const float pi = 3.141592f;
+  /*2-Calculate the vertices of the sphere*/
+  //Generate the vertices of the ball
+  for (int y = 0; y <= 360; y++)
+  {
+    for (int x = 0; x <= 360; x++)
+    {
+      float xSegment = (float)x / (float)360;
+      float ySegment = (float)y / (float)360;
+      float xPos = std::cos(xSegment * 2.0f * pi) * std::sin(ySegment * pi);
+      float yPos = std::cos(ySegment * pi);
+      float zPos = std::sin(xSegment * 2.0f * pi) * std::sin(ySegment * pi);
+      vertices.push_back(xPos);
+      vertices.push_back(yPos);
+      vertices.push_back(zPos);
+
+      //   vertices.push_back(0.014*x);
+      //   vertices.push_back(0.014*y);
+    }
+  }
+  //indices that generate the ball
+  for (int i = 0; i < 360; i++){
+    for (int j = 0; j < 360; j++){
+      indices.push_back(i * (360 + 1) + j);
+      indices.push_back((i + 1) * (360 + 1) + j);
+      indices.push_back((i + 1) * (360 + 1) + j + 1);
+
+      indices.push_back(i * (360 + 1) + j);
+      indices.push_back((i + 1) * (360 + 1) + j + 1);
+      indices.push_back(i * (360 + 1) + j + 1);
+    }
+  }
+
+  m_vertexLayout = VertexLayout::Create();
+  m_vertexBuffer = Buffer::CreateWithData(
+      GL_ARRAY_BUFFER, GL_STATIC_DRAW,
+      vertices.data(), sizeof(float) * vertices.size());
+  m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
+  m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_TRUE, sizeof(float) * 3, 0);
+
+  m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size());
+  m_VertexCount = (int)indices.size();
+  m_IndexCount = (int)vertices.size();
+  ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
+  ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
+
+  SPDLOG_INFO("vertex shader id: {}", vertShader->Get());
+  SPDLOG_INFO("fragment shader id: {}", fragShader->Get());
+  m_program = Program::Create({fragShader, vertShader});
+
+  SPDLOG_INFO("program id: {}", m_program->Get());
+  glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
+
+  auto image = Image::Load(textureset);
+
+  SPDLOG_INFO("image: {}x{}, {} channels",
+              image->GetWidth(), image->GetHeight(), image->GetChannelCount());
+  m_texture = Texture::CreateFromImage(image.get());
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+  m_program->Use();
+  m_program->SetUniform("tex", 0);
+}

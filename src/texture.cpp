@@ -33,7 +33,7 @@ void Texture::CreateTexture() {
     Bind();
     //MIPMAP 6-3 40초 참고
     SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-    SetWrap(GL_REPEAT, GL_REPEAT);
+    SetWrap(GL_REPEAT,GL_REPEAT);
 }
 
 void Texture::SetTextureFromImage(const Image* image) {

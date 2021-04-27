@@ -110,7 +110,7 @@ int main(int argc, const char** argv) {
         glfwTerminate();
         return -1;
     }
-    context->Init();
+    context->CreateSphere();
     //이벤트 처리단
     glfwSetWindowUserPointer(window,context.get());
     //윈도우가 처음생성되었을때 아래줄코드(사이즈표시)를 실행해주는부분
