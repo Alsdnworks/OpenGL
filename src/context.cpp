@@ -322,7 +322,12 @@ bool Context::CreateCylinder(){
     vertices.push_back(x);
     vertices.push_back(y);
     vertices.push_back(0.5f);
-    vx=(-0.00003)*((i-180)^2)+1;
+    if(i<180){
+      vx=1/180;
+    }
+    if(i>180){
+      vx=1-(1/180);
+    }    
     vertices.push_back(vx);
     if(i<=90){
       vy=0.5-((0.5/90)*i);
