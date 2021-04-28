@@ -14,15 +14,14 @@ public:
     static ContextUPtr Create();
     void Render();
     void ProcessInput(GLFWwindow* window);
-    bool Init();
     void Reshape(int width, int height);
     void MouseMove(double x, double y);
     void MouseButton(int button, int action, double x, double y);
-    void CreateCylinder();
-    void CreateTorus();
-    void CreateCube();
-    void CreateSphere();
-
+    bool CreateCylinder();
+    bool CreateTorus();
+    bool CreateCube();
+    bool CreateSphere();
+    void CurrentSet(int setcode);
 
 
 private:
@@ -49,7 +48,6 @@ private:
     int m_VertexCount{0}; int m_IndexCount{0};
     int m_width{WINDOW_WIDTH};
     int m_height{WINDOW_HEIGHT};
-
+    int seted_primitive;
 };
-
 #endif // __CONTEXT_H__
