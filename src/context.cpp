@@ -427,8 +427,8 @@ bool Context::CreateSphere(){
     }
   }
    
-  for (int i = 0; i < 360; i++){
-    for (int j = 0; j < 360; j++){
+  for (int i = 0; i < 180; i++){
+    for (int j = 0; j < 180; j++){
       indices.push_back(i * 360 + j);
       indices.push_back((i + 1) * 360 + j);
       indices.push_back((i + 1) * 360 + j + 1);
