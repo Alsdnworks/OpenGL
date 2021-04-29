@@ -18,10 +18,10 @@ public:
     void MouseMove(double x, double y);
     void MouseButton(int button, int action, double x, double y);
     bool CreateCylinder();
-    bool CreateTorus();
+    bool CreateTube();
     bool CreateCube();
     bool CreateSphere();
-    void CurrentSet(int setcode);
+    void CurrentPrimitive(int setcode);
 
 
 private:

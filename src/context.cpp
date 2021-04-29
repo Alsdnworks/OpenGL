@@ -74,15 +74,15 @@ void Context::MouseButton(int button, int action, double x, double y){
   }
 }
 
-void Context::CurrentSet(int setcode){ 
-if (setcode==0){CurrentSet(seted_primitive);}
+void Context::CurrentPrimitive(int setcode){ 
+if (setcode==0){CurrentPrimitive(seted_primitive);}
 if (setcode==1){CreateCube();
 seted_primitive=setcode;}
 if (setcode==2){CreateCylinder();
 seted_primitive=setcode;}
 if (setcode==3){CreateSphere();
 seted_primitive=setcode;}
-if (setcode==4){CreateTorus();
+if (setcode==4){CreateTube();
 seted_primitive=setcode;}
 
 }
@@ -106,31 +106,31 @@ void Context::Render(){
     }
     ImGui::Separator();
 
-    static const char *primitive[]{"Cube", "Cylinder", "Sphere","Torus"};
+    static const char *primitive[]{"Cube", "Cylinder", "Sphere","Tube"};
     static int pre_selected = 0;
-    static int pre_currentset = 0;
+    static int pre_CurrentPrimitive = 0;
     ImGui::Combo("primitive", &pre_selected, primitive, IM_ARRAYSIZE(primitive));
-    if (pre_selected != pre_currentset){
+    if (pre_selected != pre_CurrentPrimitive){
       switch (pre_selected){
       case 0:
         CreateCube();
-        pre_currentset = 0;
-        CurrentSet(1);
+        pre_CurrentPrimitive = 0;
+        CurrentPrimitive(1);
         break;
       case 1:
         CreateCylinder();
-        pre_currentset = 1;
-        CurrentSet(2);
+        pre_CurrentPrimitive = 1;
+        CurrentPrimitive(2);
         break;
       case 2:
         CreateSphere();
-        pre_currentset = 2;
-        CurrentSet(3);
+        pre_CurrentPrimitive = 2;
+        CurrentPrimitive(3);
         break;
       case 3:
-        CreateTorus();
-        pre_currentset = 3;
-        CurrentSet(4);
+        CreateTube();
+        pre_CurrentPrimitive = 3;
+        CurrentPrimitive(4);
         break;        
       default:
         break;
@@ -139,27 +139,27 @@ void Context::Render(){
 
     static const char *textures[]{"wood", "earth", "metal"};
     static int tex_selected = 0;
-    static int tex_currentset = 0;
+    static int tex_CurrentPrimitive = 0;
     ImGui::Combo("Texture", &tex_selected, textures, IM_ARRAYSIZE(textures));
-    if (tex_selected != tex_currentset){
+    if (tex_selected != tex_CurrentPrimitive){
       switch (tex_selected){
       case 0:
         textureset = "./image/wood.jpg";
-        tex_currentset = 0;
+        tex_CurrentPrimitive = 0;
         break;
       case 1:
         textureset = "./image/earth.jpg";
-        tex_currentset = 1;
+        tex_CurrentPrimitive = 1;
         break;
       case 2:
         textureset = "./image/metal.jpg";
-        tex_currentset = 2;
+        tex_CurrentPrimitive = 2;
         break;
       default:
         break;
       }
-      CurrentSet(0);
-      tex_currentset = tex_selected;
+      CurrentPrimitive(0);
+      tex_CurrentPrimitive = tex_selected;
     }
     ImGui::Separator();
     ImGui::DragFloat3("rotation", glm::value_ptr(matrot), 0.1f);
@@ -269,8 +269,8 @@ bool Context::CreateCube() {
       16, 17, 18, 18, 19, 16,
       20, 22, 21, 22, 20, 23,
     };
-    m_VertexCount = sizeof(vertices) / 4;
-    m_IndexCount = sizeof(indices) / 3;
+    m_VertexCount = (sizeof(vertices) / 5);
+    m_IndexCount = (sizeof(indices) / 3);
     m_vertexLayout = VertexLayout::Create();
     m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * (5 * 24));
     m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
@@ -385,8 +385,8 @@ bool Context::CreateCylinder(){
   m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
   m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
   m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size());
-  m_VertexCount = (int)indices.size();
-  m_IndexCount = (int)vertices.size();
+  m_VertexCount = ((int)vertices.size());
+  m_IndexCount = ((int)indices.size());
   ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
   ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
   if (!vertShader || !fragShader)
@@ -451,8 +451,8 @@ bool Context::CreateSphere(){
   m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
   m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_TRUE, sizeof(float) * 3, 0);
   m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size());
-  m_VertexCount = (int)indices.size();
-  m_IndexCount = (int)vertices.size();
+  m_VertexCount = ((int)vertices.size());
+  m_IndexCount = ((int)indices.size());
   ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
   ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
   if (!vertShader || !fragShader)
@@ -477,7 +477,7 @@ bool Context::CreateSphere(){
   return true;
 }
 
-bool Context::CreateTorus(){
+bool Context::CreateTube(){
     std::vector<float> vertices;
   std::vector<uint32_t> indices;
   const float pi = 3.141592f;

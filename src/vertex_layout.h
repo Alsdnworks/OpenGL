@@ -5,7 +5,8 @@
 #include "common.h"
 
 CLASS_PTR(VertexLayout)
-class VertexLayout {
+class VertexLayout
+{
 public:
     static VertexLayoutUPtr Create();
     ~VertexLayout();
@@ -21,7 +22,7 @@ public:
 private:
     VertexLayout() {}
     void Init();
-    uint32_t m_vertexArrayObject { 0 };
+    uint32_t m_vertexArrayObject{0};
 };
 
 #endif __VERTEX_LAYOUT_H__
