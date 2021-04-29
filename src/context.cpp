@@ -311,8 +311,6 @@ bool Context::CreateCylinder(){
     float angle = 4 * pi * i / 360;
     float x = cosf(angle);
     float y = sinf(angle);
-    float vx;
-    float vy;
     vertices.push_back(0);
     vertices.push_back(0);
     vertices.push_back(0.5f);
@@ -322,26 +320,8 @@ bool Context::CreateCylinder(){
     vertices.push_back(x);
     vertices.push_back(y);
     vertices.push_back(0.5f);
-    if(i<180){
-      vx=1/180;
-    }
-    if(i>180){
-      vx=1-(1/180);
-    }    
-    vertices.push_back(vx);
-    if(i<=90){
-      vy=0.5-((0.5/90)*i);
-    }
-    if(i>=90){
-      vy=((0.5/90)*i);
-    }
-    if(i>=180){
-      vy=0.5+((0.5/90)*i);
-    }
-    if(i>=270){
-      vy=1-((0.5/90)*i);
-    }
-    vertices.push_back(vy);
+    vertices.push_back(x*0.5f+0.5f);
+    vertices.push_back(y*0.5f+0.5f);
 
     vertices.push_back(0);
     vertices.push_back(0);
@@ -352,8 +332,8 @@ bool Context::CreateCylinder(){
     vertices.push_back(x);
     vertices.push_back(y);
     vertices.push_back(-0.5f);
-    vertices.push_back(vx);
-    vertices.push_back(vy);
+    vertices.push_back(x*0.5f+0.5f);
+    vertices.push_back(y*0.5f+0.5f);
   }
    //중점은 0.0 xy툭이있는 버텍스에서는 텍스쳐설정을 어떻게?
    //시작점은 0.0 0.5 쿼터일때 0.5 0.0 반일때 1.0 0.5 다음쿼터일때 0.5 1.0 
@@ -429,6 +409,7 @@ bool Context::CreateSphere(){
       vertices.push_back(xPos);
       vertices.push_back(yPos);
       vertices.push_back(zPos);   
+      
     }
   }
    
@@ -488,26 +469,26 @@ bool Context::CreateTube(){
     vertices.push_back(0.0f + (x / 1.5f));
     vertices.push_back(0.0f + (y / 1.5f));
     vertices.push_back(0.5f);
-    vertices.push_back(0.014f * (float)i);
-    vertices.push_back(0.014f * (float)i);
+    vertices.push_back(0.5);
+    vertices.push_back(0.5);
 
     vertices.push_back(x);
     vertices.push_back(y);
     vertices.push_back(0.5f);
-    vertices.push_back(0.014f * i);
-    vertices.push_back(0.014f * i);
+    vertices.push_back(x*0.5f+0.5f);
+    vertices.push_back(y*0.5f+0.5f);
 
     vertices.push_back(0.0f + (x / 1.5f));
     vertices.push_back(0.0f + (y / 1.5f));
     vertices.push_back(-0.5f);
-    vertices.push_back(0.014f * i);
-    vertices.push_back(0.014f * i);
+    vertices.push_back(0.5);
+    vertices.push_back(0.5);
 
     vertices.push_back(x);
     vertices.push_back(y);
     vertices.push_back(-0.5f);
-    vertices.push_back(0.014f * i);
-    vertices.push_back(0.014f * i);
+    vertices.push_back(x*0.5f+0.5f);
+    vertices.push_back(y*0.5f+0.5f);
   }
 
   for (int i = 0; i < 720; i++){
