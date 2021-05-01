@@ -108,7 +108,7 @@ void Context::Render(){
 
     static const char *primitive[]{"Cube", "Cylinder", "Sphere","Tube"};
     static int pre_selected = 0;
-    static int pre_CurrentPrimitive = 0;
+    static int pre_CurrentPrimitive = 50;//프리미티브초기화를위한 임의값
     ImGui::Combo("primitive", &pre_selected, primitive, IM_ARRAYSIZE(primitive));
     if (pre_selected != pre_CurrentPrimitive){
       switch (pre_selected){
@@ -301,10 +301,11 @@ bool Context::CreateCube() {
     return true;
 }
 /*함수식으로 구현하기위해선 vx는 y=0.00003(x-180)^2+1
-vy= 기본형 ax^3+bx^2+cx+d로 구해야한다.*/
-
+vy= 기본형 ax^3+bx^2+cx+d로 구해야한다. */
+//4/29수정, 기준이 0.5로 xy cos sin값을 사용한 텍스쳐할당으로 변경
 bool Context::CreateCylinder(){
   std::vector<float> vertices;
+  std::vector<float> verticesPillar;
   std::vector<uint32_t> indices;
   const float pi = 3.141592f;
   for (int i = 0; i < 360; i++){
@@ -316,6 +317,7 @@ bool Context::CreateCylinder(){
     vertices.push_back(0.5f);
     vertices.push_back(0.5);
     vertices.push_back(0.5);
+    
 
     vertices.push_back(x);
     vertices.push_back(y);
@@ -323,18 +325,22 @@ bool Context::CreateCylinder(){
     vertices.push_back(x*0.5f+0.5f);
     vertices.push_back(y*0.5f+0.5f);
 
+
     vertices.push_back(0);
     vertices.push_back(0);
     vertices.push_back(-0.5f);
     vertices.push_back(0.5);
     vertices.push_back(0.5);
+    
 
     vertices.push_back(x);
     vertices.push_back(y);
     vertices.push_back(-0.5f);
-    vertices.push_back(x*0.5f+0.5f);
     vertices.push_back(y*0.5f+0.5f);
+    vertices.push_back(x*0.5f+0.5f);
+
   }
+
    //중점은 0.0 xy툭이있는 버텍스에서는 텍스쳐설정을 어떻게?
    //시작점은 0.0 0.5 쿼터일때 0.5 0.0 반일때 1.0 0.5 다음쿼터일때 0.5 1.0 
   for (int i = 0; i < 720; i++){
@@ -354,7 +360,7 @@ bool Context::CreateCylinder(){
     }
   }
    
-  for (int i = 1; i  < 720; i += 2){
+  for (int i = 1; i  < 720; i+= 2){
     indices.push_back(i % 720);
     indices.push_back(i % 720 + 2);
     indices.push_back(i % 720 + 4);
@@ -469,8 +475,8 @@ bool Context::CreateTube(){
     vertices.push_back(0.0f + (x / 1.5f));
     vertices.push_back(0.0f + (y / 1.5f));
     vertices.push_back(0.5f);
-    vertices.push_back(0.5);
-    vertices.push_back(0.5);
+    vertices.push_back(x*0.5f);
+    vertices.push_back(y*0.5f);
 
     vertices.push_back(x);
     vertices.push_back(y);
@@ -481,8 +487,8 @@ bool Context::CreateTube(){
     vertices.push_back(0.0f + (x / 1.5f));
     vertices.push_back(0.0f + (y / 1.5f));
     vertices.push_back(-0.5f);
-    vertices.push_back(0.5);
-    vertices.push_back(0.5);
+    vertices.push_back(x*0.5f);
+    vertices.push_back(y*0.5f);
 
     vertices.push_back(x);
     vertices.push_back(y);
