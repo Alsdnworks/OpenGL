@@ -72,7 +72,8 @@ void Context::MouseButton(int button, int action, double x, double y) {
 
 void Context::Render() {
     if(ImGui::Begin("ui window")){
-      if(ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor)));{
+      if(ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor)))
+      {
         glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
         }
         ImGui::Separator();
@@ -85,8 +86,21 @@ void Context::Render() {
             m_cameraPitch = 0.0f;
             m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
       }
-    }
-    ImGui::End();
+     	//light헤더를 눌러서 접고 펼수있다
+if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) {
+      ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
+      ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
+      ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
+      ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
+  }
+ 
+  if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen)) {
+      ImGui::DragFloat("m.shininess", &m_material.shininess, 1.0f, 1.0f, 256.0f);
+      }
+      ImGui::Checkbox("animation",&m_animation);
+  }
+  ImGui::End();
+
     std::vector<glm::vec3> cubePositions = {
         glm::vec3( 0.0f, 0.0f, 0.0f),
         glm::vec3( 2.0f, 5.0f, -15.0f),
@@ -115,50 +129,77 @@ void Context::Render() {
       m_cameraPos + m_cameraFront,
       m_cameraUp);
 
+    auto lightModelTransform =
+      glm::translate(glm::mat4(1.0), m_light.position) *
+      glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
+    m_simpleProgram->Use();
+    m_simpleProgram->SetUniform("color",glm::vec4(m_light.ambient+m_light.diffuse,1.0f));
+    m_simpleProgram->SetUniform("transeform",projection*view*lightModelTransform);
+    
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);  
+
+    m_program->Use();
+    m_program->SetUniform("viewPos",m_cameraPos);
+    m_program->SetUniform("light.position", m_light.position);
+    m_program->SetUniform("light.ambient", m_light.ambient);
+    m_program->SetUniform("light.diffuse", m_light.diffuse);
+    m_program->SetUniform("light.specular", m_light.specular);
+    m_program->SetUniform("material.diffuse",0);
+    m_program->SetUniform("material.specular", 1);
+    m_program->SetUniform("material.shininess", m_material.shininess);
+
+    glActiveTexture(GL_TEXTURE0);
+    m_material.diffuse->Bind();
+    glActiveTexture(GL_TEXTURE1);
+    m_material.specular->Bind();
+
     for (size_t i = 0; i < cubePositions.size(); i++){
         auto& pos = cubePositions[i];
         auto model = glm::translate(glm::mat4(1.0f), pos);
+        auto angle = glm::radians((float)glfwGetTime() * 120.0f + 20.0f * (float)i);
         model = glm::rotate(model,
-            glm::radians((float)glfwGetTime() * 120.0f + 20.0f * (float)i),
-            glm::vec3(1.0f, 0.5f, 0.0f));
+             m_animation ? angle : 0.0f,
+             glm::vec3(1.0f, 0.5f, 0.0f));
+       /* model = glm::rotate(model,glm::radians((float)glfwGetTime() * 120.0f + 20.0f * (float)i),glm::vec3(1.0f, 0.5f, 0.0f));*/
         auto transform = projection * view * model;
         m_program->SetUniform("transform", transform);
+        m_program->SetUniform("modelTransform", model);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     }
 }
 
 bool Context::Init() {
     //텍스처를 추가하기위해 xyzrgb에 st를 추가하였다
-    float vertices[] = {        
-      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-       0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-       0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-      -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+    float vertices[] = { // pos.xyz, normal.xyz, texcoord.uv
+      -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
+       0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
+       0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
+      -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
 
-      -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-       0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-       0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-      -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,
+       0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f,
+       0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f,
 
-      -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-      -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-      -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+      -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+      -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
 
-       0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-       0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-       0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-       0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+       0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+       0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+       0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+       0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
 
-      -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-       0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-       0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-      -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f,
+       0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f,
+       0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
 
-      -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-       0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-       0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-      -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
+      -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
+       0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+       0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
     };
 
     uint32_t indices[] = {
@@ -172,21 +213,20 @@ bool Context::Init() {
     m_vertexLayout = VertexLayout::Create();
     m_vertexBuffer = Buffer::CreateWithData(
         GL_ARRAY_BUFFER, GL_STATIC_DRAW,
-        vertices, sizeof(float) * (5*24));
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
+        vertices, sizeof(float) * 8 * 6 * 4);
+
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 8, 0);
+    m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 8, sizeof(float) * 3);
+    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE,sizeof(float) * 8, sizeof(float) * 6);
     //텍스쳐 코디네이트 2차원데이터
     m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * (6*6));
-    ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
-    if (!vertShader || !fragShader)
-        return false;
-    SPDLOG_INFO("vertex shader id: {}", vertShader->Get());
-    SPDLOG_INFO("fragment shader id: {}", fragShader->Get());
-    m_program = Program::Create({fragShader, vertShader});
+    m_simpleProgram = Program::Create("./shader/simple.vs", "./shader/simple.fs");
+    if (!m_simpleProgram)
+      return false;
+
+    m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
     if (!m_program)
-        return false;
-    SPDLOG_INFO("program id: {}", m_program->Get());
+      return false;
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
      auto image = Image::Load("./image/container.jpg");
     if (!image) 
@@ -196,6 +236,12 @@ bool Context::Init() {
      m_texture=Texture::CreateFromImage(image.get());
      auto image2 =Image::Load("./image/awesomeface.png");
      m_texture2=Texture::CreateFromImage(image2.get());
+
+    m_material.diffuse = 
+    Texture::CreateFromImage(Image::Load("./image/container2.png").get());
+    m_material.specular = 
+    Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
+
      glActiveTexture(GL_TEXTURE0);
      glBindTexture(GL_TEXTURE_2D, m_texture->Get());
      glActiveTexture(GL_TEXTURE1);
@@ -205,59 +251,4 @@ bool Context::Init() {
      m_program->SetUniform("tex2",1);
 //7-3강 20분*
     return true;
-}
-
-void Context::CreateCircle(float radius,float s_radius, int segment, int a_userang,int b_userang, float R, float G, float B){
-    std::vector<float> b_vertices;
-    std::vector<float> a_vertices;
-    std::vector<float> vertices;
-    std::vector<uint32_t> indices; 
-    int ADJ_segment=360/segment;
-    segment=segment*ADJ_segment;
-    float ADJ_srad=radius-s_radius;
-    s_radius=ADJ_srad;
-    const float pi =3.141592f;
-
-    for(int i=0; i<segment; i++){
-       float angle = 4*pi*i/segment;
-       float x =cosf(angle)*radius;
-       float y =sinf(angle)*radius;
-       float m_x =cosf(angle)*(radius-s_radius);
-       float m_y =sinf(angle)*(radius-s_radius);
-
-       
-       vertices.push_back(m_x);
-       vertices.push_back(m_y);
-       vertices.push_back(0);
-       vertices.push_back(x);
-       vertices.push_back(y);
-       vertices.push_back(0);
-    }
-        for(int i = a_userang; i < b_userang; i++){
-            indices.push_back(a_userang+(i-a_userang)%segment);
-            indices.push_back(a_userang+(i-a_userang)%segment+1);
-            indices.push_back(a_userang+(i-a_userang)%segment+2);
-        }
-        indices.push_back(b_userang);
-
-    m_vertexLayout = VertexLayout::Create();
-    m_vertexBuffer = Buffer::CreateWithData(
-        GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices.data(), sizeof(float) * vertices.size()); //.data()벡터함수 내부에서 제공하는 콜백포인터
-
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-    m_indexBuffer = Buffer::CreateWithData(
-        GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices.data(), sizeof(uint32_t) * indices.size()); 
-        m_IndexCount = (int)indices.size();
-        
-        for (int i = 0; i < indices.size(); ++i) {
-    std::cout << indices[i] << std::endl;
-}
-      for (int i = 0; i < vertices.size(); ++i) {
-    std::cout << vertices[i] << std::endl;
-}
-
-    auto loc = glGetUniformLocation(m_program->Get(),"color");
-    m_program->Use();
-    glUniform4f(loc,R,G,B,1.0f);
-
 }

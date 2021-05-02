@@ -55,38 +55,6 @@ int main(int argc, const char** argv) {
     for(int i=0; i<argc; i++){
         SPDLOG_INFO("argv[{}]:{}", i, argv[i]);
     }
-//3/24 원만들기
-    float CircleRadius=0.75f;
-    float circleradius=0.5f;
-    int CircleSegmentCount=360;
-    int a_userang=0;
-    int b_userang=360;
-    float R=1.0f,G=1.0f,B=1.0f;
-    if(argc>=2)
-    {
-        CircleRadius = std::stof(argv[1]);
-    }
-    if(argc>=3){
-        circleradius=std::stof(argv[2]);
-    }
-      if(argc>=4){
-        CircleSegmentCount=std::stoi(argv[3]);
-    }
-      if(argc>=5){
-        a_userang=std::stoi(argv[4]);
-    }
-    if(argc>=6){
-        b_userang=std::stoi(argv[5]);
-    }
-    if(argc>=7){
-        R=std::stof(argv[6]);
-    }
-    if(argc>=8){
-        G=std::stof(argv[7]);
-    }
-    if(argc>=9){
-        B=std::stof(argv[8]);
-    }
 
     // glfw 라이브러리 초기화, 실패하면 에러 출력후 종료 에러코드는 -1
     SPDLOG_INFO("Initialize glfw");
