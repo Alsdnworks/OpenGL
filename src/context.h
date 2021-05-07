@@ -33,7 +33,11 @@ private:
 
   // light parameter
   struct Light{
-    glm::vec3 position{glm::vec3(3.0f, 3.0f, 3.0f)};
+    glm::vec3 position { glm::vec3(2.0f, 2.0f, 2.0f) };
+    glm::vec3 direction { glm::vec3(-1.0f, -1.0f, -1.0f) };
+    glm::vec2 cutoff { glm::vec2(20.0f, 5.0f) };//60분법의 각도 20도 각도로 퍼지는 원형 스폿라이트
+    //vec2로 clamp를 받는 경계의 inner를 조정
+    float distance{32.0f};
     glm::vec3 ambient{glm::vec3(0.1f, 0.1f, 0.1f)};
     glm::vec3 diffuse{glm::vec3(0.5f, 0.5f, 0.5f)};
     glm::vec3 specular{glm::vec3(1.0f, 1.0f, 1.0f)};

@@ -5,7 +5,13 @@
     },
     "files.associations": {
       "vector": "cpp",
-      "xstring": "cpp"
+      "xstring": "cpp",
+      "fstream": "cpp",
+      "iosfwd": "cpp",
+      "istream": "cpp",
+      "ostream": "cpp",
+      "sstream": "cpp",
+      "streambuf": "cpp"
     }
   }
 
