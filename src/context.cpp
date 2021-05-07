@@ -125,13 +125,16 @@ if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) {
         glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f),
         glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
+m_light.position=m_cameraPos;
+m_light.direction=m_cameraFront;
+
     auto projection = glm::perspective(glm::radians(45.0f),
         (float)m_width / (float)m_height, 0.01f, 20.0f);
     auto view = glm::lookAt(
       m_cameraPos,
       m_cameraPos + m_cameraFront,
       m_cameraUp);
-
+/*
     auto lightModelTransform =
       glm::translate(glm::mat4(1.0), m_light.position) *
       glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
@@ -139,7 +142,7 @@ if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) {
     m_simpleProgram->SetUniform("color",glm::vec4(m_light.ambient+m_light.diffuse,1.0f));
     m_simpleProgram->SetUniform("transeform",projection*view*lightModelTransform);
     
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);  
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);  */
 
     m_program->Use();
     m_program->SetUniform("viewPos",m_cameraPos);
