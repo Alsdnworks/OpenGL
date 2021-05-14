@@ -37,7 +37,9 @@ void Context::Reshape(int width, int height){
   m_width = width;
   m_height = height;
   glViewport(0, 0, m_width, m_height);
-}
+
+  m_framebuffer = Framebuffer::Create(Texture::Create(width, height,GL_RGBA));
+  }
 
 void Context::MouseMove(double x, double y){
   if (!m_cameraControl)
@@ -76,8 +78,11 @@ void Context::MouseButton(int button, int action, double x, double y){
 void Context::Render(){
   if (ImGui::Begin("ui window")){
     if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor))){
-      glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
+      glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, 
+                  m_clearColor.a);
     }
+    ImGui::DragFloat("gamma", &m_gamma, 0.01f, 0.0f, 2.0f);
+
     ImGui::Separator();
     ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
     ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
@@ -99,12 +104,16 @@ void Context::Render(){
       ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
       ImGui::Checkbox("l.flashlight", &m_flashlightMode);
     }
-    if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen)){
-    }
-    ImGui::Checkbox("animation", &m_animation);
+   // if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen)){
+   // }
+    //ImGui::Checkbox("animation", &m_animation);
+    float aspectRatio = (float)m_width/(float)m_height;
+    ImGui::Image((ImTextureID)m_framebuffer->GetColorAttachment()->Get(),
+      ImVec2(150*aspectRatio,150));
   }
   ImGui::End();
 
+  m_framebuffer->Bind();
   /////////////////////////////////////////////오류시 전 커밋내용 넣을것
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
@@ -204,6 +213,19 @@ void Context::Render(){
   transform = projection * view * modelTransform;
   m_textureProgram->SetUniform("transform", transform);
   m_plane->Draw(m_textureProgram.get());
+
+  Framebuffer::BindToDefault();
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+  m_postProgram->Use();
+  m_postProgram->SetUniform("transform",
+      glm::rotate(glm::mat4(1.0f),glm ::radians(0.0f),glm::vec3(0.0f,0.0f,1.0f))*
+      glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f)));
+  m_postProgram->SetUniform("gamma", m_gamma);    
+  m_framebuffer->GetColorAttachment()->Bind();
+  m_postProgram->SetUniform("tex", 0);
+  m_plane->Draw(m_textureProgram.get()); 
   }
 
 bool Context::Init(){
@@ -221,6 +243,10 @@ bool Context::Init(){
   m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
   if (!m_program)
     return false;
+
+  m_postProgram = Program::Create("./shader/texture.vs", "./shader/gamma.fs");
+  if (!m_postProgram)
+    return false;  
   
   TexturePtr darkGrayTexture = Texture::CreateFromImage(
       Image::CreateSingleColorImage(4, 4,
