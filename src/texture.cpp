@@ -80,3 +80,50 @@ void Texture::SetTextureFromImage(const Image *image){
 
     glGenerateMipmap(GL_TEXTURE_2D);
 }
+
+CubeTextureUPtr CubeTexture::CreateFromImages(const std::vector<Image*>& images) {//6개의 큐브텍스쳐로드
+  auto texture = CubeTextureUPtr(new CubeTexture());
+  if (!texture->InitFromImages(images))
+    return nullptr;
+  return std::move(texture);
+}
+
+CubeTexture::~CubeTexture() {
+  if (m_texture) {
+    glDeleteTextures(1, &m_texture);
+  }
+}
+
+void CubeTexture::Bind() const {
+  glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);   //큐브맵으로 타겟팅을 잡고 
+}
+
+bool CubeTexture::InitFromImages(const std::vector<Image*>& images) {
+  glGenTextures(1, &m_texture);
+  Bind();
+
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+//S,T,R로드
+  for (uint32_t i = 0; i < (uint32_t)images.size(); i++) {
+    auto image = images[i];
+    GLenum format = GL_RGBA;
+    switch (image->GetChannelCount()) {
+        default: break;
+        case 1: format = GL_RED; break;
+        case 2: format = GL_RG; break;
+        case 3: format = GL_RGB; break;
+    }
+
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
+    //텍스쳐큐브맵은 6개 텍스쳐,POSITIVE_X부터 NEGA_Z까지 명령어순서가 이어져있어 이런식으로 구현 가능하다 
+      image->GetWidth(), image->GetHeight(), 0,
+      format, GL_UNSIGNED_BYTE,
+      image->GetData());
+  }
+
+  return true;
+}

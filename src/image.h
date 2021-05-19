@@ -6,7 +6,7 @@
 CLASS_PTR(Image)
 class Image {
 public:
-    static ImageUPtr Load(const std::string& filepath);
+    static ImageUPtr Load(const std::string& filepath, bool flipVertical = true);//이미지 수직 플리핑을 파라미터로 조정할수있게된다.
     static ImageUPtr Create(int width, int height, int channelCount = 4);	
     static ImageUPtr CreateSingleColorImage(
     int width, int height, const glm::vec4& color);        
@@ -18,10 +18,9 @@ public:
     int GetChannelCount() const { return m_channelCount; }
     void SetCheckImage(int gridX, int gridY);
 
-
 private:
     Image() {};
-    bool LoadWithStb(const std::string& filepath);
+    bool LoadWithStb(const std::string& filepath, bool flipVertical);
     bool Allocate(int width, int height, int channelCount);
     int m_width { 0 };
     int m_height { 0 };
