@@ -171,49 +171,30 @@ void Context::Render(){
   m_program->SetUniform("light.ambient", m_light.ambient);
   m_program->SetUniform("light.diffuse", m_light.diffuse);
   m_program->SetUniform("light.specular", m_light.specular);
-  //m_program->SetUniform("material.shininess", m_box1Material->shininess);
 
+  //m_program->SetUniform("material.shininess", m_box1Material->shininess);
+//마블텍스쳐의 바닥재질/*
   auto modelTransform =
       glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.5f, 0.0f)) *
       glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 1.0f, 10.0f));
   auto transform = projection * view * modelTransform;
   m_program->SetUniform("transform", transform);
   m_program->SetUniform("modelTransform", modelTransform);
-  m_planeMaterial->SetToProgram(m_program.get());
-  m_box->Draw(m_program.get());
+  m_planeMaterial->SetToProgram(m_simpleProgram.get());
+  m_box->Draw(m_simpleProgram.get());
 
-  modelTransform =
-      glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.75f, -4.0f)) *
-      glm::rotate(glm::mat4(1.0f), glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+
+ modelTransform =
+      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
+      glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 1.0f, 1.0f)) *
       glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
   transform = projection * view * modelTransform;
-  m_program->SetUniform("transform", transform);
-  m_program->SetUniform("modelTransform", modelTransform);
-  m_box1Material->SetToProgram(m_program.get());
-  m_box->Draw(m_program.get());
+  m_combinedProgram->Use();
+  m_combinedProgram->SetUniform("transform", transform);
+  m_combinedProgram->SetUniform("modelTransform", modelTransform);
 
-  modelTransform =
-                   glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.75f, 2.0f)) *
-                   glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-                   glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-  transform = projection * view * modelTransform;
-  m_program->SetUniform("transform", transform);
-  m_program->SetUniform("modelTransform", modelTransform);
-  m_box2Material->SetToProgram(m_program.get());
-  m_box->Draw(m_program.get());
-
-  modelTransform =
-                   glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.75f, -2.0f)) *
-                   glm::rotate(glm::mat4(1.0f), glm::radians(40.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-                   glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-  m_envMapProgram->Use();
-  m_envMapProgram->SetUniform("model", modelTransform);
-  m_envMapProgram->SetUniform("view", view);
-  m_envMapProgram->SetUniform("projection", projection);
-  m_envMapProgram->SetUniform("cameraPos", m_cameraPos);
-  m_cubeTexture->Bind();
-  m_envMapProgram->SetUniform("skybox", 0);
-  m_box->Draw(m_envMapProgram.get());
+  m_helmetMaterial->SetToProgram(m_combinedProgram.get());
+  m_model->Draw(m_combinedProgram.get());
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -222,23 +203,7 @@ void Context::Render(){
   m_windowTexture->Bind();
   m_textureProgram->SetUniform("tex", 0);
 
-  modelTransform =
-    glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f, 4.0f));
-  transform = projection * view * modelTransform;
-  m_textureProgram->SetUniform("transform", transform);
-  m_plane->Draw(m_textureProgram.get());
-
-  modelTransform =
-    glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0.5f, 5.0f));
-  transform = projection * view * modelTransform;
-  m_textureProgram->SetUniform("transform", transform);
-  m_plane->Draw(m_textureProgram.get());
-
-  modelTransform =
-    glm::translate(glm::mat4(1.0f), glm::vec3(0.4f, 0.5f, 6.0f));
-  transform = projection * view * modelTransform;
-  m_textureProgram->SetUniform("transform", transform);
-  m_plane->Draw(m_textureProgram.get());
+  
 //grass 12-3 2800
   glEnable(GL_BLEND);
   glDisable(GL_CULL_FACE);
@@ -275,6 +240,8 @@ bool Context::Init(){
   glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
   m_box = Mesh::CreateBox();
+  m_model = Model::Load("./model/helmet.obj");
+
 
    m_textureProgram = Program::Create("./shader/texture.vs", "./shader/texture.fs");
   if (!m_textureProgram)
@@ -290,6 +257,10 @@ bool Context::Init(){
   m_postProgram = Program::Create("./shader/texture.vs", "./shader/gamma.fs");
   if (!m_postProgram)
     return false;  
+
+
+
+  //m_combinedProgram= m_program.;
   
   TexturePtr darkGrayTexture = Texture::CreateFromImage(
       Image::CreateSingleColorImage(4, 4,
@@ -320,6 +291,14 @@ bool Context::Init(){
       Image::Load("./image/container2_specular.png").get());
   m_box2Material->shininess = 64.0f;
 
+  m_helmetMaterial = Material::Create();
+  m_helmetMaterial->diffuse=
+  Texture::CreateFromImage(Image::CreateSingleColorImage(4, 4, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)).get());
+  m_helmetMaterial->specular=
+  Texture::CreateFromImage(Image::CreateSingleColorImage(4, 4, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)).get());
+  m_helmetMaterial->shininess = 32.0f;
+
+
   m_plane = Mesh::CreatePlane();
   m_windowTexture = Texture::CreateFromImage(
   Image::Load("./image/blending_transparent_window.png").get());
@@ -343,6 +322,12 @@ bool Context::Init(){
   //grass
   m_grassTexture = Texture::CreateFromImage(Image::Load("./image/grass.png").get());
   m_grassProgram = Program::Create("./shader/grass.vs", "./shader/grass.fs");
+
+
+  m_combinedProgram = Program::Create("./shader/pong_ev.vs", "./shader/pong_ev.fs");
+  if (!m_combinedProgram)
+    return false;  
+
   m_grassPos.resize(10000);//만개의 벡터
   for (size_t i = 0; i < m_grassPos.size(); i++) {
     m_grassPos[i].x = ((float)rand() / (float)RAND_MAX * 2.0f - 1.0f) * 5.0f;
@@ -365,5 +350,14 @@ bool Context::Init(){
   glVertexAttribDivisor(3, 1);//3번은 인스턴스가 바뀔때마다 값이 바뀌도록해줌 나머지는 고정-플레인의 인덱스버퍼사용
   m_plane->GetIndexBuffer()->Bind();
 
+  /*
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, m_texture2->Get());
+  m_program->Use();
+  m_program->SetUniform("tex", 0);
+  m_program->SetUniform("tex2", 1);
+*/
   return true;
 }
