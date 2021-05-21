@@ -221,31 +221,36 @@ void Context::Render()
     transform = projection * view * modelTransform;
 
     m_combinedProgram->Use();
-    m_combinedProgram->SetUniform("shaderOption", m_shaderOption);
-    m_combinedProgram->SetUniform("viewPos", m_cameraPos);
-    m_combinedProgram->SetUniform("light.position", lightPos);
-    m_combinedProgram->SetUniform("light.direction", lightDir);
-    m_combinedProgram->SetUniform("light.cutoff", glm::vec2(
-                                                      cosf(glm::radians(m_light.cutoff[0])),
-                                                      cosf(glm::radians(m_light.cutoff[0] + m_light.cutoff[1]))));
-    m_combinedProgram->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
-    m_combinedProgram->SetUniform("light.ambient", m_light.ambient);
-    m_combinedProgram->SetUniform("light.diffuse", m_light.diffuse);
-    m_combinedProgram->SetUniform("light.specular", m_light.specular);
-    m_combinedProgram->SetUniform("material.diffuse", 0);
-    m_combinedProgram->SetUniform("material.specular", 0);
-    m_combinedProgram->SetUniform("material.shininess", 0);
+  m_combinedProgram->SetUniform("model", modelTransform);
+  m_combinedProgram->SetUniform("view", view);
+  m_combinedProgram->SetUniform("projection", projection);
+  m_combinedProgram->SetUniform("cameraPos", m_cameraPos);  
+  m_combinedProgram->SetUniform("viewPos", m_cameraPos);
+  m_combinedProgram->SetUniform("light.position", lightPos);
+  m_combinedProgram->SetUniform("light.direction", lightDir);
+  m_combinedProgram->SetUniform("light.cutoff", glm::vec2(
+                        cosf(glm::radians(m_light.cutoff[0])),
+                        cosf(glm::radians(m_light.cutoff[0] + m_light.cutoff[1]))));
+  m_combinedProgram->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
+  m_combinedProgram->SetUniform("light.ambient", m_light.ambient);
+  m_combinedProgram->SetUniform("light.diffuse", m_light.diffuse);
+  m_combinedProgram->SetUniform("light.specular", m_light.specular);
+  m_combinedProgram->SetUniform("material.diffuse", 0);
+  m_combinedProgram->SetUniform("material.specular", 1);
+  m_combinedProgram->SetUniform("material.shininess", m_helmetMaterial.shininess);
+  glActiveTexture(GL_TEXTURE0);
+  m_helmetMaterial.diffuse->Bind();
+  glActiveTexture(GL_TEXTURE1);
+  m_helmetMaterial.specular->Bind();
+  glActiveTexture(GL_TEXTURE2);
+  m_cubeTexture->Bind();
+  m_envMapProgram->SetUniform("skybox", 0);
 
-    m_combinedProgram->SetUniform("transform", transform);
-    m_combinedProgram->SetUniform("modelTransform", modelTransform);
-    m_combinedProgram->SetUniform("model", modelTransform);
-    m_combinedProgram->SetUniform("view", view);
-    m_combinedProgram->SetUniform("projection", projection);
-    m_combinedProgram->SetUniform("cameraPos", m_cameraPos);
-    m_cubeTexture->Bind();
-
-    m_helmetMaterial->SetToProgram(m_combinedProgram.get());
-    m_model->Draw(m_combinedProgram.get());
+  auto modelTransform = glm::mat4(1.0f);
+  auto transform = projection * view * modelTransform;
+  m_combinedProgram->SetUniform("transform", transform);
+  m_combinedProgram->SetUniform("modelTransform", modelTransform);
+  m_model->Draw(m_combinedProgram.get());
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
