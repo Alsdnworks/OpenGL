@@ -83,6 +83,7 @@ private:
   ModelUPtr m_model;
   //env+pong
   ProgramUPtr m_combinedProgram;
+  float m_shaderOption{0.0f};
 
   int m_width{WINDOW_WIDTH};
   int m_height{WINDOW_HEIGHT};
