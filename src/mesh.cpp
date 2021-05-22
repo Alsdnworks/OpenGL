@@ -96,7 +96,7 @@ MeshUPtr Mesh::CreatePlane() {
 }//삼각형 2개로 만드는 1개 평면
 
 void Material::SetToProgram(const Program* program) const {
-  int textureCount = 0;
+  int textureCount = 1;
   if (diffuse) {
     glActiveTexture(GL_TEXTURE0 + textureCount);
     program->SetUniform("material.diffuse", textureCount);
