@@ -1,9 +1,12 @@
 #version 330 core
+
 in vec3 normal;
 in vec2 texCoord;
 in vec3 position;
 out vec4 fragColor;
- 
+
+
+
 uniform vec3 viewPos;
 struct Light {
     vec3 position;
@@ -28,8 +31,6 @@ uniform vec3 cameraPos;
 uniform samplerCube skybox; //skybox와 마찬가지로
 
 void main() {
-    vec3 I = normalize(position - cameraPos); //아이벡터     사선벡터와 물체법선벡터를 통해 반사벡터계산
-    vec3 R = reflect(I, normalize(normal)); 
     vec3 texColor = texture2D(material.diffuse, texCoord).xyz;
     vec3 ambient = texColor * light.ambient;
 //attenuation model= Fatt=1.0/kc+k1*d+kq*d^2 d는 광원과 물페사이거리, 광원이 어느정도까지 영향을 줄지 파라미터조정
@@ -47,6 +48,9 @@ void main() {
     float intensity = clamp(
   (theta - light.cutoff[1]) / (light.cutoff[0] - light.cutoff[1]),
   0.0, 1.0);////clamp a-b로 잡아주는 함수
+
+        vec3 I = normalize(position - cameraPos); //아이벡터     사선벡터와 물체법선벡터를 통해 반사벡터계산
+    vec3 R = reflect(I, normalize(normal)); //리플렉션벡터    벡터방향으로 부터 큐브맵 텍스쳐 픽셀값을 가져옴
  
   if (intensity > 0.0) {
         vec3 pixelNorm = normalize(normal);
@@ -59,9 +63,9 @@ void main() {
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
         vec3 specular = spec * specColor * light.specular;
 
-        result += (diffuse + specular) * intensity;//texture(skybox,R).xyz;
+        result += (diffuse + specular) * intensity;
     }
 
     result *= attenuation;
-    fragColor = vec4(texture(skybox,R).xyz, 1.0);
+    fragColor = vec4(result, 1.0);
 }
