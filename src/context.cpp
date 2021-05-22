@@ -178,7 +178,7 @@ void Context::Render(){
     m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
     m_box->Draw(m_simpleProgram.get());
   }
-  //
+  /*
   m_program->Use();
   m_program->SetUniform("viewPos", m_cameraPos);
   m_program->SetUniform("light.position", lightPos);
@@ -199,16 +199,16 @@ void Context::Render(){
   m_planeMaterial->SetToProgram(m_simpleProgram.get());
   m_box->Draw(m_simpleProgram.get());
 //
-  modelTransform =
-      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
+  auto modelTransform =
+      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f)) *
       glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 1.0f, 1.0f)) *
       glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-  transform = projection * view * modelTransform;
-//
-  modelTransform =
+  auto transform = projection * view * modelTransform;
+*/
+  auto modelTransform =
       glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
       glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-  transform = projection * view * modelTransform;
+  auto transform = projection * view * modelTransform;
   m_combinedProgram->Use();
   m_combinedProgram->SetUniform("envScale", m_envScale);
   m_combinedProgram->SetUniform("param", m_param);
@@ -229,6 +229,8 @@ void Context::Render(){
   m_combinedProgram->SetUniform("cameraPos", m_cameraPos);
   m_model->Draw(m_combinedProgram.get());
 //
+
+/*
   glEnable(GL_BLEND);
   glDisable(GL_CULL_FACE);
   m_grassProgram->Use();
@@ -241,7 +243,8 @@ void Context::Render(){
   glDrawElementsInstanced(GL_TRIANGLES, m_plane->GetIndexBuffer()->GetCount(),
                           GL_UNSIGNED_INT, 0, m_grassPosBuffer->GetCount());
 }
-
+*/
+}
 bool Context::Init(){
   glEnable(GL_MULTISAMPLE);  
   glClearColor(0.1f, 0.2f, 0.3f, 0.0f);

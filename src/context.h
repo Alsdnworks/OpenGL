@@ -64,9 +64,9 @@ private:
   // camera parameter
   bool m_cameraControl{false};
   glm::vec2 m_prevMousePos{glm::vec2(0.0f)};
-  float m_cameraPitch{-20.0f};
+  float m_cameraPitch{2.5f};
   float m_cameraYaw{0.0f};
-  glm::vec3 m_cameraPos{glm::vec3(0.0f, 2.5f, 8.0f)};
+  glm::vec3 m_cameraPos{glm::vec3(0.0f, 1.5f, 7.0f)};
   glm::vec3 m_cameraFront{glm::vec3(0.0f, 0.0f, -1.0f)};
   glm::vec3 m_cameraUp{glm::vec3(0.0f, 1.0f, 0.0f)};
   //Framebuffer
