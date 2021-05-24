@@ -9,6 +9,7 @@ uniform vec3 cameraPos;
 uniform samplerCube skybox; //skybox와 마찬가지로
 
 void main() {
-    /리플렉션벡터    벡터방향으로 부터 큐브맵 텍스쳐 픽셀값을 가져옴
+    vec3 I = normalize(position - cameraPos); //아이벡터     사선벡터와 물체법선벡터를 통해 반사벡터계산
+    vec3 R = reflect(I, normalize(normal)); //리플렉션벡터    벡터방향으로 부터 큐브맵 텍스쳐 픽셀값을 가져옴
     fragColor = vec4(texture(skybox, R).rgb, 1.0);
 }

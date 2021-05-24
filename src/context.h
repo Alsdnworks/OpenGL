@@ -31,9 +31,6 @@ private:
   float m_gamma {1.0f};
   MeshUPtr m_box;
   MeshUPtr m_plane;
-  TextureUPtr m_texture;
-  TextureUPtr m_texture2;
-
   //ModelUPtr m_model;
   bool m_animation{true};
 
@@ -54,9 +51,7 @@ private:
   MaterialPtr m_box1Material;
   MaterialPtr m_box2Material;
   TexturePtr m_windowTexture;
-  MaterialPtr m_helmetMaterial;
 
-  
   //clear color
   glm::vec4 m_clearColor{glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)};
   // camera parameter
@@ -79,12 +74,7 @@ private:
   std::vector<glm::vec3>m_grassPos;
   BufferUPtr m_grassPosBuffer;
   VertexLayoutUPtr m_grassInstance;
-  //helmet
-  ModelUPtr m_model;
-  //env+pong
-  ProgramUPtr m_combinedProgram;
-  float m_shaderOption{0.0f};
-
+  
   int m_width{WINDOW_WIDTH};
   int m_height{WINDOW_HEIGHT};
 };
