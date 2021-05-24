@@ -1,0 +1,159 @@
+# ExternalProject 관련 명령어 셋 추가
+# include는 추가적인 기능을 사용한다는 선언
+# 20번째줄의 익스터널을 사용한다고 선언
+include(ExternalProject)
+
+# Dependency 관련 변수 설정
+set(DEP_INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
+set(DEP_INCLUDE_DIR ${DEP_INSTALL_DIR}/include)
+set(DEP_LIB_DIR ${DEP_INSTALL_DIR}/lib)
+
+# spdlog: fast logger library
+#21번째줄은 깃헙 주소를 받아서 그것에대해 씨메이크를 실행
+ExternalProject_Add(
+    #변수설정과같다 컴파일을 할때의 대표이름
+    dep_spdlog
+    #사용할 라이브러리의 깃주소
+    GIT_REPOSITORY "https://github.com/gabime/spdlog.git"
+    #버전을 설정한다. 해당 라이브러리 좌측상단에 브랜치와 태그정보를
+    #리스트한 태그를 불러 올 수있다.
+    GIT_TAG "v1.x"
+    #1은 부울값의 스위치로 깃 수ㅖㄹ로우는 코드변경 내역을 모두받지않고
+    #최신 커밋만 받을수있다
+    GIT_SHALLOW 1
+    #깃 레포의 클론으로 다운받고 일련의 과정(빌드의 과정)은
+    #업데이트와 패치스텝은 없음,
+    #업데이트는 깃풀-(업데이트가된다면...)
+    #패치는 디폴트가없고 명시적으로 기재해준것
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    #씨메이크 컴피규어를 위한 인자 -D는 정의(데피니션)
+    #CMAKE_INSTALL_PREFIX씨메가 빌드를 했을때 어디에 인스톨 할지
+    #${DEP_INSTALL_DIR}에 지정한 set변수를 통해서...15번째줄로
+    #인스톨 디렉터리를 만들어 결과물을 거기로 넣겠다~라는뜻
+    #이해가 안가면 17분부터보자
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR}
+    #
+    TEST_COMMAND ""
+)
+# Dependency 리스트 및 라이브러리 파일 리스트 추가
+set(DEP_LIST ${DEP_LIST} dep_spdlog)
+#26분 참조... 이해안감
+#디버그로 컨피그시 d를 붙여줌 install/lib/spdlogd.txt
+set(DEP_LIBS ${DEP_LIBS} spdlog$<$<CONFIG:Debug>:d>)
+#이하 마찬가지
+
+# glfw는 opengl로 작성한 코드를 응용하는데 사용된다
+ExternalProject_Add(
+    dep_glfw
+    GIT_REPOSITORY "https://github.com/glfw/glfw.git"
+    GIT_TAG "3.3.2"
+    GIT_SHALLOW 1
+    UPDATE_COMMAND "" 
+    PATCH_COMMAND "" 
+    TEST_COMMAND ""
+    CMAKE_ARGS
+    #인스톨경로 이것도 스피드로그와 마찬가지
+        -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR}
+        #glfw의 예제,시험파일,각종문서는 안쓸께요
+        -DGLFW_BUILD_EXAMPLES=OFF
+        -DGLFW_BUILD_TESTS=OFF
+        -DGLFW_BUILD_DOCS=OFF
+        #glfw깃에서 ㅡcmakelist를 보면 이런 옵션이있다
+        #그 내용은 위 세줄을 빌드할지 켜고 끌수있다(on/off)
+        #D가 뭔지는 여쭤보고싶
+    )
+    #라이브러리와 리스트를 설정
+    #자세한건 씨메이크.txt참고
+set(DEP_LIST ${DEP_LIST} dep_glfw)
+set(DEP_LIBS ${DEP_LIBS} glfw3)
+
+# glad
+ExternalProject_Add(
+    dep_glad
+    GIT_REPOSITORY "https://github.com/Dav1dde/glad"
+    GIT_TAG "v0.1.34"
+    GIT_SHALLOW 1
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR}
+        -DGLAD_INSTALL=ON
+    TEST_COMMAND ""
+    )
+    
+set(DEP_LIST ${DEP_LIST} dep_glad)
+set(DEP_LIBS ${DEP_LIBS} glad)
+
+# stb
+ExternalProject_Add(
+    dep_stb
+    GIT_REPOSITORY "https://github.com/nothings/stb"
+    GIT_TAG "master"
+    GIT_SHALLOW 1
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    TEST_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
+        ${PROJECT_BINARY_DIR}/dep_stb-prefix/src/dep_stb/stb_image.h
+        ${DEP_INSTALL_DIR}/include/stb/stb_image.h
+    )
+set(DEP_LIST ${DEP_LIST} dep_stb)
+
+# glm
+ExternalProject_Add(
+  dep_glm
+  GIT_REPOSITORY "https://github.com/g-truc/glm"
+  GIT_TAG "0.9.9.8"
+  GIT_SHALLOW 1
+  UPDATE_COMMAND ""
+  PATCH_COMMAND ""
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  TEST_COMMAND ""
+  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_BINARY_DIR}/dep_glm-prefix/src/dep_glm/glm
+    ${DEP_INSTALL_DIR}/include/glm
+  )
+set(DEP_LIST ${DEP_LIST} dep_glm)
+
+#imgui
+add_library(imgui
+    imgui/imgui_draw.cpp
+    imgui/imgui_tables.cpp
+    imgui/imgui_widgets.cpp
+    imgui/imgui.cpp
+    imgui/imgui_impl_glfw.cpp
+    imgui/imgui_impl_opengl3.cpp
+    )
+target_include_directories(imgui PRIVATE ${DEP_INCLUDE_DIR})
+add_dependencies(imgui ${DEP_LIST})
+set(DEP_INCLUDE_DIR ${DEP_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
+set(DEP_LIST ${DEP_LIST} imgui)
+set(DEP_LIBS ${DEP_LIBS} imgui)
+
+# assimp
+ExternalProject_Add(
+    dep_assimp
+    GIT_REPOSITORY "https://github.com/assimp/assimp"
+    GIT_TAG "v5.0.1"
+    GIT_SHALLOW 1
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR}
+        -DBUILD_SHARED_LIBS=OFF
+        -DASSIMP_BUILD_ASSIMP_TOOLS=OFF
+        -DASSIMP_BUILD_TESTS=OFF
+        -DASSIMP_INJECT_DEBUG_POSTFIX=OFF
+        -DASSIMP_BUILD_ZLIB=ON
+    TEST_COMMAND ""
+    )
+set(DEP_LIST ${DEP_LIST} dep_assimp)
+set(DEP_LIBS ${DEP_LIBS}
+    assimp-vc142-mt$<$<CONFIG:Debug>:d>
+    zlibstatic$<$<CONFIG:Debug>:d>
+    IrrXML$<$<CONFIG:Debug>:d>
+    )
