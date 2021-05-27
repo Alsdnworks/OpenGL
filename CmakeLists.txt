@@ -22,7 +22,7 @@ add_executable(${PROJECT_NAME}
   src/model.cpp src/model.h
   src/framebuffer.cpp src/framebuffer.h
   src/shadow_map.cpp src/shadow_map.h 
-  src/normal.cpp src/normal.h 
+  
   )
 
 #디펜던시로간다

@@ -150,10 +150,8 @@ auto lightProjection = m_light.directional ?
 
   auto projection = glm::perspective(glm::radians(45.0f),
                                      (float)m_width / (float)m_height, 0.01f, 100.0f);//near far조정 파라미터(클리핑범위)
-  auto view = glm::lookAt(
-      m_cameraPos,
-      m_cameraPos + m_cameraFront,
-      m_cameraUp);
+  auto view = glm::lookAt(m_cameraPos,m_cameraPos + m_cameraFront,
+             m_cameraUp);
 
 
 //skybox
@@ -201,8 +199,27 @@ auto lightProjection = m_light.directional ?
   m_shadowMap->GetShadowMap()->Bind();
   m_lightingShadowProgram->SetUniform("shadowMap", 3);
   glActiveTexture(GL_TEXTURE0);
-
+//////////////////////////normalmaptest/////////13-4  1800
   DrawScene(view, projection, m_lightingShadowProgram.get());//m_program->SetUniform("material.shininess", m_box1Material->shininess);
+
+  auto modelTransform =
+    glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.0f, 0.0f))*
+    glm::rotate(glm::mat4(1.0f),glm::radians(-90.0f),glm::vec3(1.0f,0.0f,0.0f));
+  m_normalProgram->Use();
+  m_normalProgram->SetUniform("viewPos", m_cameraPos);
+  m_normalProgram->SetUniform("lightPos", m_light.position);
+  glActiveTexture(GL_TEXTURE0);
+  m_brickDiffuseTexture->Bind();
+  m_normalProgram->SetUniform("diffuse", 0);
+  glActiveTexture(GL_TEXTURE1);
+  m_brickNormalTexture->Bind();
+  m_normalProgram->SetUniform("normalMap", 1);
+  glActiveTexture(GL_TEXTURE0);
+  m_normalProgram->SetUniform("modelTransform", modelTransform);
+  m_normalProgram->SetUniform("transform", projection * view * modelTransform);
+  m_plane->Draw(m_normalProgram.get());
+
+
 }
 bool Context::Init(){
   glEnable(GL_MULTISAMPLE);//MSAA활성화
@@ -227,7 +244,14 @@ bool Context::Init(){
   m_lightingShadowProgram = Program::Create(
     "./shader/lighting_shadow.vs", "./shader/lighting_shadow.fs");
   if (!m_lightingShadowProgram)
-    return false;   
+    return false;
+  m_brickDiffuseTexture = Texture::CreateFromImage(
+    Image::Load("./image/brickwall.jpg", false).get());
+  m_brickNormalTexture = Texture::CreateFromImage(
+    Image::Load("./image/brickwall_normal.jpg", false).get());
+  m_normalProgram = Program::Create(
+    "./shader/normal.vs", "./shader/normal.fs");  
+
   
   TexturePtr darkGrayTexture = Texture::CreateFromImage(
       Image::CreateSingleColorImage(4, 4,
