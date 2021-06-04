@@ -31,6 +31,10 @@ glm::vec3 GetAttenuationCoeff(float distance) {
   float kl = glm::dot(linear_coeff, dvec);
   float kq = glm::dot(quad_coeff, dvec);
   //왜??????9-4강??2816
-
+  
   return glm::vec3(kc, glm::max(kl, 0.0f), glm::max(kq*kq, 0.0f));
+ 
+}
+ float RandomRange(float minValue, float maxValue) {
+    return ((float)rand() / (float)RAND_MAX) *(maxValue - minValue) + minValue;
 }

@@ -27,6 +27,7 @@ using klassName ## WPtr = std::weak_ptr<klassName>;
      //다만 동작할당과 반환이 귀찮아지므로 이런타입을 사용
 std::optional<std::string> LoadTextFile(const std::string& filename);
 glm::vec3 GetAttenuationCoeff(float distance);
+float RandomRange(float minValue = 0.0f, float maxValue = 1.0f);
 #endif // __COMMON_H__
 
 /*h가 디파인이 되어있지않는다면?-중복사용시 오류를 방지한다(함수2회선언)
