@@ -102,6 +102,9 @@ void Context::Render() {
     ImGui::SliderFloat("mat.metallic", &m_material.metallic, 0.0f, 1.0f);
     ImGui::SliderFloat("mat.ao", &m_material.ao, 0.0f, 1.0f);
   } 
+    ImGui::Checkbox("use IBL", &m_useIBL);
+    float w = ImGui::GetContentRegionAvailWidth();
+    ImGui::Image((ImTextureID)m_brdfLookupMap->Get(), ImVec2(w, w));
   }
   ImGui::End();
 
@@ -124,7 +127,18 @@ void Context::Render() {
   m_pbrProgram->SetUniform("viewPos", m_cameraPos);
   m_pbrProgram->SetUniform("material.albedo", m_material.albedo);
   m_pbrProgram->SetUniform("material.ao", m_material.ao);
-  	
+  m_pbrProgram->SetUniform("useIBL", m_useIBL ? 1 : 0);
+  m_pbrProgram->SetUniform("irradianceMap", 0);
+  m_pbrProgram->SetUniform("preFilteredMap", 1);
+  m_pbrProgram->SetUniform("brdfLookupTable", 2);
+  glActiveTexture(GL_TEXTURE0);
+  m_diffuseIrradianceMap->Bind();
+  glActiveTexture(GL_TEXTURE1);
+  m_preFilteredMap->Bind();
+  glActiveTexture(GL_TEXTURE2);
+  m_brdfLookupMap->Bind();
+  glActiveTexture(GL_TEXTURE0);
+  m_diffuseIrradianceMap->Bind();	
   for (size_t i = 0; i < m_lights.size(); i++) {
     auto posName = fmt::format("lights[{}].position", i);
     auto colorName = fmt::format("lights[{}].color", i);
@@ -132,7 +146,7 @@ void Context::Render() {
     m_pbrProgram->SetUniform(colorName, m_lights[i].color);
   }
   DrawScene(view, projection, m_pbrProgram.get());
-
+/*
   m_sphericalMapProgram->Use();
   m_sphericalMapProgram->SetUniform("transform",
     projection * view *
@@ -140,6 +154,19 @@ void Context::Render() {
   m_sphericalMapProgram->SetUniform("tex", 0);
   m_hdrMap->Bind();
   m_box->Draw(m_sphericalMapProgram.get());
+*/
+ 	glDepthFunc(GL_LEQUAL);
+  m_skyboxProgram->Use();
+  m_skyboxProgram->SetUniform("roughness", m_material.roughness);
+  m_skyboxProgram->SetUniform("projection", projection);
+  m_skyboxProgram->SetUniform("view", view);
+  m_skyboxProgram->SetUniform("cubeMap", 0);
+ // m_diffuseIrradianceMap->Bind();
+  m_hdrCubeMap->Bind();
+  //m_diffuseIrradianceMap->Bind();
+  m_box->Draw(m_skyboxProgram.get());
+  glDepthFunc(GL_LESS);
+
 }
 
 
@@ -147,6 +174,7 @@ void Context::Render() {
 bool Context::Init() {
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
   glClearColor(0.0f,0.0f, 0.0f, 0.0f);
 
   m_box = Mesh::CreateBox();
@@ -156,9 +184,7 @@ bool Context::Init() {
 
   m_simpleProgram = Program::Create("./shader/simple.vs", "./shader/simple.fs");
   m_pbrProgram = Program::Create(
-    "./shader/pbr_texture.vs", "./shader/pbr_texture.fs"); 
-
-	
+    "./shader/pbr.vs", "./shader/pbr.fs"); 
 
   m_lights.push_back({
     glm::vec3(5.0f, 5.0f, 6.0f), glm::vec3(40.0f, 40.0f, 40.0f)
@@ -177,6 +203,102 @@ bool Context::Init() {
     Image::Load("./image/Alexs_Apt_2k.hdr").get());
   m_sphericalMapProgram = Program::Create(
     "./shader/spherical_map.vs", "./shader/spherical_map.fs");
+
+  m_hdrCubeMap = CubeTexture::Create(512, 512, GL_RGB16F, GL_FLOAT);
+  auto cubeFramebuffer = CubeFramebuffer::Create(m_hdrCubeMap);
+  auto projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+  std::vector<glm::mat4> views = {
+      glm::lookAt(glm::vec3(0.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+      glm::lookAt(glm::vec3(0.0f),
+        glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+      glm::lookAt(glm::vec3(0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+      glm::lookAt(glm::vec3(0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+      glm::lookAt(glm::vec3(0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+      glm::lookAt(glm::vec3(0.0f),
+        glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+    };
+  m_sphericalMapProgram->Use();
+  m_sphericalMapProgram->SetUniform("tex", 0);
+  m_hdrMap->Bind();
+  glViewport(0, 0, 512, 512);
+  for (int i = 0; i < (int)views.size(); i++) {
+        cubeFramebuffer->Bind(i);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m_sphericalMapProgram->SetUniform("transform", projection * views[i]);
+        m_box->Draw(m_sphericalMapProgram.get());
+  }
+  m_hdrCubeMap->GenerateMipmap();
+
+
+  m_diffuseIrradianceProgram = Program::Create(
+      "./shader/skybox_hdr.vs", "./shader/diffuse_irradiance.fs");
+  m_diffuseIrradianceMap = CubeTexture::Create(64, 64, GL_RGB16F, GL_FLOAT);
+  cubeFramebuffer = CubeFramebuffer::Create(m_diffuseIrradianceMap);
+  glDepthFunc(GL_LEQUAL);
+  m_diffuseIrradianceProgram->Use();
+  m_diffuseIrradianceProgram->SetUniform("projection", projection);
+  m_diffuseIrradianceProgram->SetUniform("cubeMap", 0);
+  m_hdrCubeMap->Bind();
+  glViewport(0, 0, 64, 64);
+  for (int i = 0; i < (int)views.size(); i++) {
+      cubeFramebuffer->Bind(i);
+      glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      m_diffuseIrradianceProgram->SetUniform("view", views[i]);
+      m_box->Draw(m_diffuseIrradianceProgram.get());
+  }
+  glDepthFunc(GL_LESS);
+
+  
+ const uint32_t maxMipLevels = 5;
+  glDepthFunc(GL_LEQUAL);
+  m_preFilteredProgram = Program::Create(
+    "./shader/skybox_hdr.vs", "./shader/prefiltered_light.fs");
+  m_preFilteredMap = CubeTexture::Create(128, 128, GL_RGB16F, GL_FLOAT);
+  m_preFilteredMap->GenerateMipmap();
+  m_preFilteredProgram->Use();
+  m_preFilteredProgram->SetUniform("projection", projection);
+  m_preFilteredProgram->SetUniform("cubeMap", 0);
+  m_hdrCubeMap->Bind();
+  for (uint32_t mip = 0; mip < maxMipLevels; mip++) {
+    auto framebuffer = CubeFramebuffer::Create(m_preFilteredMap, mip);
+    uint32_t mipWidth = 128 >> mip;
+    uint32_t mipHeight = 128 >> mip;
+    glViewport(0, 0, mipWidth, mipHeight);
+
+    float roughness = (float)mip / (float)(maxMipLevels - 1);
+    m_preFilteredProgram->SetUniform("roughness", roughness);
+    for (uint32_t i = 0; i < (int)views.size(); i++) {
+      m_preFilteredProgram->SetUniform("view", views[i]);
+      framebuffer->Bind(i);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      m_box->Draw(m_preFilteredProgram.get());   
+    }
+  }
+  glDepthFunc(GL_LESS);
+ 
+  Framebuffer::BindToDefault();
+  glViewport(0, 0, m_width, m_height);
+
+  m_skyboxProgram = Program::Create(
+    "./shader/skybox_hdr.vs", "./shader/skybox_hdr.fs");
+
+  m_brdfLookupProgram = Program::Create(
+    "./shader/brdf_lookup.vs", "./shader/brdf_lookup.fs");
+  m_brdfLookupMap = Texture::Create(512, 512, GL_RG16F, GL_FLOAT);
+  auto lookupFramebuffer = Framebuffer::Create({ m_brdfLookupMap });
+  lookupFramebuffer->Bind();
+  glViewport(0, 0, 512, 512);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  m_brdfLookupProgram->Use();
+  m_brdfLookupProgram->SetUniform("transform",
+    glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, -2.0f, 2.0f)));
+  m_plane->Draw(m_brdfLookupProgram.get());
+
   return true;
 }
 
