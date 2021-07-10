@@ -1,0 +1,43 @@
+cmake_minimum_required(VERSION 3.14)
+
+set(PROJECT_NAME opengl_example)
+set(CMAKE_CXX_STANDARD 17)
+	
+set(WINDOW_NAME "OpenGL Example")
+set(WINDOW_WIDTH 940)
+set(WINDOW_HEIGHT 540)
+
+project(${PROJECT_NAME})
+add_executable(${PROJECT_NAME} 
+  src/main.cpp
+  src/common.cpp src/common.h
+  src/shader.cpp src/shader.h
+  src/program.cpp src/program.h
+  src/context.cpp src/context.h
+  )
+
+#디펜던시로간다
+include(Dependency.cmake)
+
+
+# 우리 프로젝트에 include / lib 관련 옵션 추가
+#3번째줄의 실행파일만들기가 타겟이된다 ->main.cpp
+#이걸 컴파일할때 퍼블릭하게할 DEP_INCLUDE_DIR가 필요하다
+#이는 16번째 줄부터 명시되어있다
+#한줄정리: 링크된 코드뭉치를 사용하겠다
+target_include_directories(${PROJECT_NAME} PUBLIC ${DEP_INCLUDE_DIR})
+target_link_directories(${PROJECT_NAME} PUBLIC ${DEP_LIB_DIR})
+#포함시킬라이브러리
+target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS})
+
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+  WINDOW_NAME="${WINDOW_NAME}"
+  WINDOW_WIDTH=${WINDOW_WIDTH}
+  WINDOW_HEIGHT=${WINDOW_HEIGHT}
+  )
+
+# Dependency들이 먼저 build 될 수 있게 관계 설정
+#본문컴파일 전에 (디펜던시;의존성){DEP_LIST}먼저끝내고가라 라는뜻
+#이걸 설정안하면 코어마다 병렬빌드가되는데 라이브러리 인스톨전에 돌아갈수도있으니까..
+add_dependencies(${PROJECT_NAME} ${DEP_LIST})
