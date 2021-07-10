@@ -1,0 +1,20 @@
+	{
+    "cmake.debugConfig": {
+      "cwd": "${workspaceFolder}",
+    },
+    "files.associations": {
+      "vector": "cpp",
+      "xstring": "cpp",
+      "fstream": "cpp",
+      "iosfwd": "cpp",
+      "istream": "cpp",
+      "ostream": "cpp",
+      "sstream": "cpp",
+      "streambuf": "cpp",
+      "memory": "cpp"
+    }
+  }
+
+
+//디버그위치 디버그모드일때 현재 디버그위치를 루트폴더로한다
+//cwd-커런트 워킹 폴더
